@@ -1,0 +1,293 @@
+{
+  "nodes": [
+    {
+      "id": "jannik-center",
+      "type": "text",
+      "text": "# JANNIK\n\nKfz-Mechatroniker\nDigitale Produkte aufbauen\n\n[[JANNIK]]",
+      "x": 0,
+      "y": 0,
+      "width": 280,
+      "height": 180,
+      "color": "1"
+    },
+    {
+      "id": "vision",
+      "type": "text",
+      "text": "# VISION\n\nEine der besten Automotive-Plattformen der Welt\n\n[[AUTOMOTIVE_VISION]]",
+      "x": -600,
+      "y": -400,
+      "width": 320,
+      "height": 160,
+      "color": "4"
+    },
+    {
+      "id": "automotive-project",
+      "type": "text",
+      "text": "# AUTOMOTIVE PLATFORM\n\nWissens- & Informationsplattform\nKEINE Autoverkaufsplattform\n\n[[Projekte/automotive-platform/OVERVIEW]]",
+      "x": 400,
+      "y": -300,
+      "width": 340,
+      "height": 180,
+      "color": "5"
+    },
+    {
+      "id": "ziele",
+      "type": "text",
+      "text": "# ZIELE\n\n1. Beste Automotive-Plattform DE\n2. Langfristig: weltweit\n3. Eigene digitale Produkte",
+      "x": -600,
+      "y": -100,
+      "width": 300,
+      "height": 160,
+      "color": "6"
+    },
+    {
+      "id": "identifikation",
+      "type": "text",
+      "text": "# FAHRZEUGIDENTIFIKATION\n\n- VIN / FIN\n- HSN / TSN\n- Manuelle Auswahl\n\n[[Wissen/Automotive/FAHRZEUGIDENTIFIKATION]]",
+      "x": 800,
+      "y": -500,
+      "width": 300,
+      "height": 180,
+      "color": "3"
+    },
+    {
+      "id": "wissensbasis",
+      "type": "text",
+      "text": "# AUTOMOTIVE WISSEN\n\nHersteller → Modell → Generation → Motor → Details\n\nVW | Audi | BMW (Start)\n\n[[Wissen/Automotive/WISSENSBASIS]]",
+      "x": 800,
+      "y": -250,
+      "width": 320,
+      "height": 180,
+      "color": "3"
+    },
+    {
+      "id": "funktionen",
+      "type": "text",
+      "text": "# FUNKTIONEN\n\n- Technische Daten\n- Ausstattung\n- Schwachstellen\n- Vergleich\n- Smart Search\n- Mein Fahrzeug\n- Verkaufshilfe (Beispiel)\n\n[[Projekte/automotive-platform/FUNKTIONEN]]",
+      "x": 400,
+      "y": -600,
+      "width": 300,
+      "height": 240,
+      "color": "5"
+    },
+    {
+      "id": "ux-prinzip",
+      "type": "text",
+      "text": "# UX-PRINZIP\n\nEinfach fuer den Menschen\nKomplex im Hintergrund\n\nAuch ein Opa ohne Ahnung muss es verstehen",
+      "x": -200,
+      "y": -500,
+      "width": 300,
+      "height": 160,
+      "color": "2"
+    },
+    {
+      "id": "ki-zukunft",
+      "type": "text",
+      "text": "# KI — ZUKUNFT\n\nV1: Keine KI\nSpaeter: Smart Search, Analyse, Assistent\nArchitektur: KI-ready\n\n[[DECISIONS]] D-002, D-003",
+      "x": 800,
+      "y": 50,
+      "width": 300,
+      "height": 180,
+      "color": "0"
+    },
+    {
+      "id": "masterplan",
+      "type": "text",
+      "text": "# MASTERPLAN\n\nPhase 1: Grundlagen\nPhase 2: Wissensbasis\nPhase 3: Interaktiv\nPhase 4: KI\n\n[[MASTERPLAN]]",
+      "x": -200,
+      "y": 300,
+      "width": 280,
+      "height": 200,
+      "color": "6"
+    },
+    {
+      "id": "status",
+      "type": "text",
+      "text": "# PROJEKTSTATUS\n\nIn aktiver Entwicklung\nVieles noch nicht final\n\n[[PROJECT_STATUS]]",
+      "x": 400,
+      "y": 100,
+      "width": 280,
+      "height": 140,
+      "color": "5"
+    },
+    {
+      "id": "decisions",
+      "type": "text",
+      "text": "# ENTSCHEIDUNGEN\n\n7 aktive Entscheidungen\n\n[[DECISIONS]]",
+      "x": -600,
+      "y": 200,
+      "width": 260,
+      "height": 120,
+      "color": "4"
+    },
+    {
+      "id": "ideas",
+      "type": "text",
+      "text": "# IDEEN\n\n16 dokumentierte Ideen\n\n[[IDEAS]]",
+      "x": -600,
+      "y": 380,
+      "width": 260,
+      "height": 120,
+      "color": "4"
+    },
+    {
+      "id": "problems",
+      "type": "text",
+      "text": "# PROBLEME\n\n6 offene Probleme\n1 geloest\n\n[[PROBLEMS]]",
+      "x": 400,
+      "y": 300,
+      "width": 260,
+      "height": 120,
+      "color": "1"
+    },
+    {
+      "id": "second-brain",
+      "type": "text",
+      "text": "# SECOND BRAIN\n\nObsidian Vault\nExternes Gehirn fuer Claude\nTokens sparen\n\n[[CLAUDE_CONTEXT]]",
+      "x": -200,
+      "y": 550,
+      "width": 280,
+      "height": 160,
+      "color": "2"
+    },
+    {
+      "id": "technik",
+      "type": "text",
+      "text": "# TECHNIK\n\nDatenbanken, Filter, Formulare\nTextbausteine, Logik\nKeine KI in V1\n\n[[Projekte/automotive-platform/TECHNIK]]",
+      "x": 800,
+      "y": 250,
+      "width": 280,
+      "height": 160,
+      "color": "3"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-jannik-vision",
+      "fromNode": "jannik-center",
+      "toNode": "vision",
+      "fromSide": "left",
+      "toSide": "bottom",
+      "label": "verfolgt"
+    },
+    {
+      "id": "e-jannik-ziele",
+      "fromNode": "jannik-center",
+      "toNode": "ziele",
+      "fromSide": "left",
+      "toSide": "right",
+      "label": "Ziele"
+    },
+    {
+      "id": "e-vision-projekt",
+      "fromNode": "vision",
+      "toNode": "automotive-project",
+      "fromSide": "right",
+      "toSide": "top",
+      "label": "wird zu"
+    },
+    {
+      "id": "e-projekt-funktionen",
+      "fromNode": "automotive-project",
+      "toNode": "funktionen",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "label": "enthaelt"
+    },
+    {
+      "id": "e-projekt-identifikation",
+      "fromNode": "automotive-project",
+      "toNode": "identifikation",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "nutzt"
+    },
+    {
+      "id": "e-projekt-wissen",
+      "fromNode": "automotive-project",
+      "toNode": "wissensbasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "basiert auf"
+    },
+    {
+      "id": "e-vision-ux",
+      "fromNode": "vision",
+      "toNode": "ux-prinzip",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "Kernprinzip"
+    },
+    {
+      "id": "e-wissen-ki",
+      "fromNode": "wissensbasis",
+      "toNode": "ki-zukunft",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "spaeter"
+    },
+    {
+      "id": "e-jannik-masterplan",
+      "fromNode": "jannik-center",
+      "toNode": "masterplan",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "folgt"
+    },
+    {
+      "id": "e-jannik-status",
+      "fromNode": "jannik-center",
+      "toNode": "status",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "aktuell"
+    },
+    {
+      "id": "e-masterplan-decisions",
+      "fromNode": "masterplan",
+      "toNode": "decisions",
+      "fromSide": "left",
+      "toSide": "right",
+      "label": "basiert auf"
+    },
+    {
+      "id": "e-masterplan-ideas",
+      "fromNode": "masterplan",
+      "toNode": "ideas",
+      "fromSide": "left",
+      "toSide": "right",
+      "label": "inspiriert durch"
+    },
+    {
+      "id": "e-status-problems",
+      "fromNode": "status",
+      "toNode": "problems",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "Blocker"
+    },
+    {
+      "id": "e-jannik-brain",
+      "fromNode": "jannik-center",
+      "toNode": "second-brain",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "nutzt"
+    },
+    {
+      "id": "e-projekt-technik",
+      "fromNode": "automotive-project",
+      "toNode": "technik",
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "e-technik-ki",
+      "fromNode": "technik",
+      "toNode": "ki-zukunft",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "label": "spaeter"
+    }
+  ]
+}
