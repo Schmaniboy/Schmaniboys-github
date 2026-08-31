@@ -1,0 +1,1661 @@
+{
+  "$schema": "./PROGRESS.schema.md",
+  "meta": {
+    "project": "CARONEX",
+    "progressSystemVersion": "1.0",
+    "masterplanFile": "MASTERPLAN.md",
+    "masterplanVersion": "1.0",
+    "projectRoot": "Repository-Wurzel (schmaniboy/automotive-platform)",
+    "brainLocation": "docs/gehirn/ im Repository (siehe ADR-002)",
+    "brainArchive": "D:\\Zweites Gehirn\\Projekte\\Automotive-Plattform (nicht mehr fuehrend, nur Recherche)",
+    "createdAt": "2026-08-21",
+    "lastUpdated": "2026-08-24",
+    "updatedBy": "claude",
+    "statusValues": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "done"
+    ],
+    "notes": "Einzige Quelle der Wahrheit fuer den Fortschritt. Nach jedem Arbeitsschritt aktualisieren, dann STATUS.md neu spiegeln.",
+    "updatedAt": "2026-08-24"
+  },
+  "totals": {
+    "phases": 19,
+    "tasks": 177,
+    "done": 177,
+    "inProgress": 0,
+    "blocked": 0,
+    "notStarted": 0,
+    "percentComplete": 100
+  },
+  "constraints": [
+    {
+      "id": "C1",
+      "rule": "KEIN STRIPE",
+      "detail": "Zahlungslogik providerunabhaengig ueber eine Billing-Abstraktion (createCheckout, verifyPayment, handleWebhook, refundPayment, getPaymentStatus). Ueberschreibt die Stripe-Festlegung aus dem v1-Gehirn.",
+      "source": "MASTERPLAN Phase 11"
+    },
+    {
+      "id": "C2",
+      "rule": "KEIN MATRIX SYNAPSE",
+      "detail": "Messaging vollstaendig plattformintern.",
+      "source": "MASTERPLAN Phase 12"
+    },
+    {
+      "id": "C3",
+      "rule": "Keine erfundenen Daten",
+      "detail": "Technische Daten, Marktwerte und Zugangsdaten werden nie erfunden. Fehlende Informationen werden gekennzeichnet.",
+      "source": "MASTERPLAN global + Gehirn"
+    },
+    {
+      "id": "C4",
+      "rule": "Design Schwarz + Neon Rot",
+      "detail": "Premium Automotive. Keine Gaming-Optik, keine unnoetigen Animationen, kein Standard-Template-Look.",
+      "source": "MASTERPLAN Design"
+    },
+    {
+      "id": "C5",
+      "rule": "Autonomes Arbeiten",
+      "detail": "Normale technische Entscheidungen selbst treffen, nicht nach jeder Phase nachfragen. Wieder aktiv seit 2026-08-21 auf ausdrueckliche Anweisung des Nutzers.",
+      "source": "MASTERPLAN + Nutzeranweisung"
+    },
+    {
+      "id": "C6",
+      "rule": "Plugins aktiv nutzen",
+      "detail": "In dieser Umgebung stehen die genannten Plugins nicht als Plugins zur Verfuegung. Gleichwertig eingesetzt werden: eigene Code- und Security-Reviews je Phase, TypeScript-Pruefung, ESLint, Vitest sowie Browserpruefung der Oberflaeche.",
+      "source": "MASTERPLAN Plugins"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "B1",
+      "title": "Tech-Stack-Konflikt: Astro vs. geplante Architektur",
+      "severity": "hoch",
+      "blocks": [
+        "phase-1"
+      ],
+      "detail": "Der vorhandene Code ist ein Astro-Starter mit Markdown-Content-Collections. Der MASTERPLAN verlangt ab Phase 7 Auth, Tokens, Billing, Messaging und Adminbereich; das Gehirn plant dafuer Next.js + API + PostgreSQL. Astro-Content-Collections koennen das nicht tragen. Entscheidung noetig, bevor Phase 1 sinnvoll fortgesetzt werden kann.",
+      "decisionNeeded": false,
+      "documentedIn": "docs/gehirn/Entscheidungsprotokoll.md",
+      "openQuestionId": "A6",
+      "options": [
+        {
+          "id": "A",
+          "title": "Next.js + NestJS-API + BullMQ-Worker + PostgreSQL",
+          "recommended": true,
+          "note": "Gehirnkonform. Traegt beide Haelften. Erzwungene Struktur genau dort, wo das Projekt empfindlich ist: Guthaben, Rechte, Mandanten"
+        },
+        {
+          "id": "B",
+          "title": "Next.js mit Route Handlers + eigener Worker, ohne NestJS",
+          "recommended": false,
+          "note": "Fachlich vertretbar, schlanker, schneller sichtbar. OpenAPI manuell, Trennung der Domaenenlogik haengt an der Disziplin"
+        },
+        {
+          "id": "C",
+          "title": "Astro fuer den Katalog + Next.js fuer die Anwendung + API",
+          "recommended": false,
+          "note": "Beste Katalog-Performance, aber zwei Frontends, geteilte Session ueber zwei Anwendungen, doppelte Pflege"
+        },
+        {
+          "id": "D",
+          "title": "Alles in Astro",
+          "recommended": false,
+          "note": "Scheidet aus - traegt die Phasen 7 bis 13 strukturell nicht"
+        }
+      ],
+      "status": "geloest",
+      "resolution": "ADR-001 vom 2026-08-21: Variante B mit Domaenenlogik in packages/core."
+    },
+    {
+      "id": "B2",
+      "title": "Kein Git-Repository",
+      "severity": "mittel",
+      "blocks": [
+        "phase-1",
+        "alle Commit-Schritte"
+      ],
+      "detail": "In D:\\Auto-Website ist kein Git initialisiert. Der Abschlussschritt 'Commit' jeder Phase ist damit nicht ausfuehrbar. Behebbar ohne Ruecksprache (git init), sobald mit der Umsetzung begonnen wird.",
+      "decisionNeeded": false,
+      "status": "geloest",
+      "resolution": "Repository vorhanden, Commits laufen."
+    },
+    {
+      "id": "B3",
+      "title": "Redaktionskapazitaet fuer Katalogdaten",
+      "severity": "hoch",
+      "blocks": [
+        "phase-2",
+        "phase-3",
+        "phase-5",
+        "phase-6"
+      ],
+      "detail": "Entschieden: eigene Redaktion mit KI-Vorstrukturierung, jede harte Zahl vor Freigabe an der Primaerquelle verifiziert. Wer erfasst und wer gibt frei, ist offen. Struktur und UI sind unabhaengig davon baubar; nur die Befuellung haengt daran.",
+      "decisionNeeded": true
+    },
+    {
+      "id": "B4",
+      "title": "Marktdatenquelle fuer die Fahrzeugbewertung",
+      "severity": "hoch",
+      "blocks": [
+        "phase-8"
+      ],
+      "detail": "Keine Quelle fuer Vergleichsangebote/Marktwerte festgelegt. Schnittstelle und Berechnungslogik sind vorbereitbar; belastbare Zahlen nicht. Fallback: eigene Angebotsdatenauswertung mit ausgewiesener geringerer Guete. Heraufgestuft von mittel: Ohne Vergleichsangebote ist der Kernnutzen von Phase 8 nicht lieferbar, nur die Rechenhuelle.",
+      "decisionNeeded": false,
+      "status": "teilweise geloest",
+      "resolution": "Phase 8 vom 2026-08-22: Bewertung gebaut und lauffaehig ohne Quelle. Ohne Grundwert kein Eurobetrag (null statt Schaetzung) und keine Abbuchung; Faktorenanalyse, Begruendungen und Oberflaeche stehen. Offen bleibt nur die Quelle selbst. Anforderungen an sie stehen im Typ MarketBasis.",
+      "documentedIn": "docs/gehirn/10-Bewertung.md"
+    },
+    {
+      "id": "B5",
+      "title": "Zahlungsanbieter offen",
+      "severity": "niedrig",
+      "blocks": [],
+      "detail": "KEIN STRIPE ist gesetzt, ein Ersatz nicht benannt. Die Billing-Abstraktion aus Phase 11 ist ohne Anbieter vollstaendig baubar - genau dafuer ist sie da. Kein echter Blocker.\n\nGELOEST: Mollie, angebunden gegen den offiziellen Client. Ohne Schluessel tritt weiterhin die Ersatzvariante an -- es wird nichts abgebucht fuer eine Funktion, die nicht laufen kann. Siehe ADR-012.",
+      "decisionNeeded": false,
+      "status": "geloest",
+      "documentedIn": "docs/gehirn/Entscheidungsprotokoll.md (ADR-012)"
+    },
+    {
+      "id": "B6",
+      "title": "Markenname, Domain, Logo",
+      "severity": "niedrig",
+      "blocks": [],
+      "detail": "Nicht festgelegt. Design-Tokens, Typografie und Komponenten sind unabhaengig davon baubar; nur Logo und Wortmarke fehlen.",
+      "decisionNeeded": true
+    },
+    {
+      "id": "B7",
+      "title": "VIN-Aufloesung ueber WMI hinaus nicht belegbar",
+      "severity": "hoch",
+      "status": "geloest",
+      "blocks": [
+        "phase-7"
+      ],
+      "detail": "Aus einer VIN sind nach ISO 3779/3780 zuverlaessig nur Herstellerkennung (WMI), Modelljahrcode und Werkscode ableitbar. Modell, Generation und Motorcode sind NICHT aus der VIN berechenbar; dafuer braucht es herstellerspezifische Datenbestaende oder einen kostenpflichtigen Dienst. Phase 7 setzt das voraus.",
+      "decisionNeeded": false,
+      "workaround": "Ablauf als \"VIN schlaegt vor, Nutzer bestaetigt\" bauen. Nicht Belegtes wird als Vorschlag gekennzeichnet und muss bestaetigt werden (Vorgabe C3).",
+      "documentedIn": "docs/gehirn/09-Verkaufsassistent.md",
+      "resolution": "Phase 7 vom 2026-08-22: geloest durch den Ablauf, nicht durch eine Datenquelle. decodeVin liefert nur Belegbares; der Verkaeufer bestaetigt das Fahrzeug aus veroeffentlichten Katalogeintraegen; generateListingTexts verweigert den Dienst ohne catalogConfirmedAt."
+    },
+    {
+      "id": "B8",
+      "title": "Kein Versandweg fuer E-Mail",
+      "severity": "mittel",
+      "status": "geloest",
+      "blocks": [
+        "phase-1",
+        "phase-7"
+      ],
+      "detail": "Registrierungsbestaetigung und Passwort-Zuruecksetzen brauchen einen Versandweg. Kein Anbieter festgelegt. Folge: Konten sind ohne Verifikation sofort nutzbar, und ein vergessenes Passwort ist nicht zuruecksetzbar.\n\nGELOEST: SMTP statt eines Anbieters -- ein Standard, kein Erzeugnis einer Firma. Derselbe Adapter funktioniert mit Postmark, Brevo, Mailgun, SES oder einem eigenen Server; der Wechsel aendert vier Umgebungsvariablen. Ohne Konfiguration meldet sich der Versand als nicht eingerichtet. Siehe ADR-016.",
+      "decisionNeeded": false,
+      "workaround": "MailSender-Schnittstelle bauen, Versand bis zur Anbieterwahl abgeschaltet.",
+      "documentedIn": "docs/gehirn/Entscheidungsprotokoll.md (ADR-016)"
+    }
+  ],
+  "phases": [
+    {
+      "id": "phase-0",
+      "number": 0,
+      "name": "Projekt-Gehirn & Bestandsanalyse",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 0 (Fundament)",
+      "tasks": [
+        {
+          "id": "0.1",
+          "title": "MASTERPLAN vollstaendig lesen",
+          "status": "done",
+          "note": "1597 Zeilen, 16 Phasen. Datei heisst MASTERPLAN.md.txt, nicht MASTERPLAN.md"
+        },
+        {
+          "id": "0.2",
+          "title": "Projektordner D:\\Auto-Website vollstaendig analysieren",
+          "status": "done",
+          "note": "16 Dateien ausserhalb node_modules"
+        },
+        {
+          "id": "0.3",
+          "title": "Bestehendes Projekt-Gehirn finden und lesen",
+          "status": "done",
+          "note": "Liegt nicht im Projektordner, sondern im Obsidian-Vault D:\\Zweites Gehirn: Automotive-Plattform (15 Dokumente, v2) + Fahrzeug-Verkaufsplattform (14 Dokumente, v1-Archiv)"
+        },
+        {
+          "id": "0.4",
+          "title": "Codebasis, Architektur und Konfiguration pruefen",
+          "status": "done",
+          "note": "Astro 7 + Tailwind 4 + Vercel-Adapter. Einziger echter Produktcode: src/content.config.ts"
+        },
+        {
+          "id": "0.5",
+          "title": "Tatsaechlichen Stand von Phase 1 ermitteln",
+          "status": "done",
+          "note": "Phase 1 ist im Code faktisch nicht begonnen. Begonnen wurde die Planung im Gehirn"
+        },
+        {
+          "id": "0.6",
+          "title": "Fortschrittssystem STATUS.md + PROGRESS.json einrichten",
+          "status": "done",
+          "note": "Beide Dateien in D:\\Auto-Website"
+        },
+        {
+          "id": "0.7",
+          "title": "Gehirn mit MASTERPLAN synchronisieren",
+          "status": "done",
+          "note": "C1, C2, PostgreSQL-Bestaetigung und die Regel gegen negative Guthaben ins Entscheidungsprotokoll uebernommen. Phasen-Mapping in STATUS.md. Codeort und zweiter Plan in CLAUDE.md dokumentiert. Blocker B1 als A6 in Offene-Fragen eingetragen"
+        },
+        {
+          "id": "0.8",
+          "title": "Architektur-Blocker B1 ausfuehrlich dokumentieren",
+          "status": "done",
+          "note": "Gehirn-Dokument 09-Architekturentscheidung-Frontend-Backend.md: Befund, 4 Varianten, Zielarchitektur, Rendering-Strategie, Sicherheitsarchitektur, Skalierungspfad, Rolle von Astro, Backend-/Datenbankbegruendung"
+        },
+        {
+          "id": "0.9",
+          "title": "Architekturvorschlag zur Entscheidung vorlegen",
+          "status": "done",
+          "note": "Empfehlung Variante A. Entscheidung liegt beim Auftraggeber, siehe Blocker B1"
+        }
+      ]
+    },
+    {
+      "id": "phase-1",
+      "number": 1,
+      "name": "Architektur & Projekt-Fundament",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 0",
+      "blockedBy": [
+        "B1"
+      ],
+      "tasks": [
+        {
+          "id": "1.1",
+          "title": "Tech-Stack final entscheiden (Astro vs. Next.js + API + DB)",
+          "status": "done",
+          "note": "Entschieden in ADR-001: Variante B (Next.js + Route Handlers), Domaenenlogik in packages/core."
+        },
+        {
+          "id": "1.2",
+          "title": "Git-Repository initialisieren",
+          "status": "done",
+          "note": "Repository vorhanden, Branch claude/automotive-platform-7odt3q. Blocker B2 damit erledigt."
+        },
+        {
+          "id": "1.3",
+          "title": "Projektstruktur / Monorepo-Grundgeruest aufsetzen",
+          "status": "done",
+          "note": "npm-Workspaces: apps/web, apps/worker, packages/core, packages/db. Abhaengigkeitsrichtung festgelegt."
+        },
+        {
+          "id": "1.4",
+          "title": "Frontend-Grundgeruest",
+          "status": "done",
+          "note": "Next.js 15 App Router, Startseite statisch, Platzhalterseiten fuer noch nicht gebaute Bereiche."
+        },
+        {
+          "id": "1.5",
+          "title": "Backend / API-Grundgeruest",
+          "status": "done",
+          "note": "Typisierter Route-Handler-Wrapper: Validierung, Authentifizierung, Autorisierung, Ratenbegrenzung, Fehlerabbildung."
+        },
+        {
+          "id": "1.6",
+          "title": "Datenbank + ORM + Basisschema",
+          "status": "done",
+          "note": "Prisma 6 + PostgreSQL 16. Schema User/Session/Dealer/AuditLog, Migration erzeugt und gegen echte Datenbank angewendet."
+        },
+        {
+          "id": "1.7",
+          "title": "Authentication",
+          "status": "done",
+          "note": "Eigene Sitzungsauthentifizierung (ADR-003): scrypt, httpOnly-Cookie, Token nur als SHA-256 gespeichert, Kontosperre nach 8 Fehlversuchen."
+        },
+        {
+          "id": "1.8",
+          "title": "Authorization, Rollen, RBAC",
+          "status": "done",
+          "note": "Rechtematrix mit 6 Rollen in packages/core, serverseitig erzwungen. Eigentums- und Mandantenpruefung getrennt vom Recht."
+        },
+        {
+          "id": "1.9",
+          "title": "Designsystem Schwarz + Neon Rot als Token-Theme",
+          "status": "done",
+          "note": "Tokens in globals.css, Kontrastwerte nachgerechnet und in docs/gehirn/03-Designsystem.md dokumentiert."
+        },
+        {
+          "id": "1.10",
+          "title": "Komponentenstruktur + Basiskomponenten",
+          "status": "done",
+          "note": "Button/LinkButton, Card, Badge, InputField/SelectField, Table, Modal, StatusIndicator, VehicleCard, DataGap/SourceNote, Layout-Bausteine."
+        },
+        {
+          "id": "1.11",
+          "title": "Zentrale Fehlerbehandlung",
+          "status": "done",
+          "note": "AppError-Taxonomie in core, einheitliche Abbildung auf HTTP, error.tsx und not-found.tsx."
+        },
+        {
+          "id": "1.12",
+          "title": "Grundlegende Security (Header, Validierung, Secrets)",
+          "status": "done",
+          "note": "Security-Header, CSP mit Nonce fuer dynamische Bereiche, Env-Validierung, Ratenbegrenzung, Body-Grenze, IP-Hashing per HMAC."
+        },
+        {
+          "id": "1.13",
+          "title": "Tests: TypeScript, Lint, Build, Security Review",
+          "status": "done",
+          "note": "97 Tests gruen (Unit, Integration gegen PostgreSQL, CSP gegen Build-Manifest und laufende Anwendung). typecheck und lint ohne Befund."
+        },
+        {
+          "id": "1.14",
+          "title": "Abschluss: Gehirn + Changelog aktualisieren, Commit",
+          "status": "done",
+          "note": "Gehirn in docs/gehirn/ angelegt, CHANGELOG fortgeschrieben, Commit erstellt."
+        }
+      ]
+    },
+    {
+      "id": "phase-2",
+      "number": 2,
+      "name": "Automotive-Datenbank",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 1 (Katalog-Kern)",
+      "tasks": [
+        {
+          "id": "2.1",
+          "title": "Schema: Hersteller",
+          "status": "done",
+          "note": "Manufacturer mit Slug, Land und WMI-Kennungen. WMI ist der einzige aus der VIN belegbare Teil."
+        },
+        {
+          "id": "2.2",
+          "title": "Schema: Modell",
+          "status": "done",
+          "note": "Model, eindeutig je Hersteller ueber den Slug."
+        },
+        {
+          "id": "2.3",
+          "title": "Schema: Generation + Facelift-Phase",
+          "status": "done",
+          "note": "Generation mit Baureihencode und Bauzeitraum, FaceliftPhase als eigene Tabelle samt Erkennungsmerkmalen."
+        },
+        {
+          "id": "2.4",
+          "title": "Schema: Motor + Motorcode",
+          "status": "done",
+          "note": "Engine am Hersteller statt am Modell, Motorcode je Hersteller eindeutig."
+        },
+        {
+          "id": "2.5",
+          "title": "Schema: Getriebe + Antrieb als Antriebskombination",
+          "status": "done",
+          "note": "PowertrainCombination traegt Generation + Motor + Getriebe + Antriebsart und alle Fahrleistungen. Verbrauch immer mit Messzyklus."
+        },
+        {
+          "id": "2.6",
+          "title": "Schema: Ausstattungslinie",
+          "status": "done",
+          "note": "TrimLine je Generation."
+        },
+        {
+          "id": "2.7",
+          "title": "Schema: Sonderausstattung + Pakete",
+          "status": "done",
+          "note": "OptionalEquipment am Hersteller, OptionAvailability je Generation und Ausstattungslinie, EquipmentPackage mit Positionen."
+        },
+        {
+          "id": "2.8",
+          "title": "Erweiterbarkeit sicherstellen, Duplikate vermeiden",
+          "status": "done",
+          "note": "Zehn Eindeutigkeitsbedingungen, Slugs mit ausgeschriebenen Umlauten, Wertebereiche gegen Tippfehler, fast alle Fachfelder optional."
+        },
+        {
+          "id": "2.9",
+          "title": "Datenbankzugriff absichern, Adminrechte fuer Stammdatenaenderungen",
+          "status": "done",
+          "note": "Schreibzugriff nur mit catalog:write, Freigabe nur mit catalog:publish. Oeffentliche Abfragen filtern in der Datenschicht auf PUBLISHED. Ohne Quelle keine Veroeffentlichung."
+        },
+        {
+          "id": "2.10",
+          "title": "Abschluss: Tests, Gehirn, Commit",
+          "status": "done",
+          "note": "36 neue Tests: Einheiten, Redaktionsablauf, Eingabeschemata, Anwendungsfaelle und 12 Tests des gesamten Ablaufs ueber die HTTP-Schnittstelle."
+        }
+      ]
+    },
+    {
+      "id": "phase-3",
+      "number": 3,
+      "name": "Fahrzeug-Wissensdatenbank",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 2 (Oeffentlicher Katalog)",
+      "tasks": [
+        {
+          "id": "3.1",
+          "title": "Datenmodell fuer Wissensinhalte",
+          "status": "done",
+          "note": "Vier Tabellen: KnownIssue, MaintenanceItem, CostEstimate, KnowledgeNote. Jede haengt an einer Generation, wahlweise enger an einer Antriebskombination."
+        },
+        {
+          "id": "3.2",
+          "title": "Quellen-/Belegpflicht + Kennzeichnung fehlender Informationen",
+          "status": "done",
+          "note": "Drei Belegmodelle erzwungen: SPECIFICATION braucht eine belastbare Quellenart (Pressemitteilung genuegt nicht), ASSESSMENT eine Begruendung, MARKET_SIGNAL Datengrundlage und Stichtag. Guete wird gedeckelt, nicht abgelehnt."
+        },
+        {
+          "id": "3.3",
+          "title": "Verstaendliche Aufbereitung fuer Laien",
+          "status": "done",
+          "note": "Glossar mit 14 Begriffen in Alltagssprache, in der Oberflaeche als abbr eingebunden, dazu eine Glossarseite. Kosten und Laufleistungen immer als Spanne."
+        },
+        {
+          "id": "3.4",
+          "title": "Fahrzeugseiten UI (Premium, responsive)",
+          "status": "done",
+          "note": "Generationsseite mit technischen Daten, Motorvarianten, Ausstattungslinien, Schwachstellen, Wartung, Kosten, Einordnung und Quellen."
+        },
+        {
+          "id": "3.5",
+          "title": "Generationsseiten",
+          "status": "done",
+          "note": "Katalogseiten Hersteller, Modell, Generation mit Pfadanzeige und statischer Auslieferung samt Erneuerung."
+        },
+        {
+          "id": "3.6",
+          "title": "Motorseiten",
+          "status": "done",
+          "note": "Motorvarianten als Tabelle je Antriebskombination, mit Motorcode, Aufladung, Leistung in kW und PS sowie Verbrauch samt Messverfahren."
+        },
+        {
+          "id": "3.7",
+          "title": "Ausstattungsseiten",
+          "status": "done",
+          "note": "Ausstattungslinien auf der Generationsseite. Sonderausstattung und Pakete sind im Schema und ueber die API erfasst; ihre eigene Darstellung folgt in Phase 6."
+        },
+        {
+          "id": "3.8",
+          "title": "Abschluss: Tests, Gehirn, Commit",
+          "status": "done",
+          "note": "28 neue Tests, darunter neun, die die Belegpflicht ueber die HTTP-Schnittstelle durchspielen. Zwei Anzeigefehler gefunden und behoben."
+        }
+      ]
+    },
+    {
+      "id": "phase-4",
+      "number": 4,
+      "name": "Fahrzeug-Suche & Fahrzeugseiten",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 2",
+      "tasks": [
+        {
+          "id": "4.1",
+          "title": "Such-/Query-Layer",
+          "status": "done",
+          "note": "Suche auf Ebene der Antriebskombination. Anfrageschema in core, Abfrage in db, Filter auf PUBLISHED auf allen vier Ebenen."
+        },
+        {
+          "id": "4.2",
+          "title": "Filter implementieren",
+          "status": "done",
+          "note": "Umgesetzt: Freitext, Hersteller, Modell, Karosserie, Baujahr als Ueberschneidung, Kraftstoff, Getriebe, Antrieb, Leistungsspanne. NICHT umgesetzt: Preis, Kilometer und Standort - diese gehoeren zu einer Anzeige und gibt es erst mit Phase 9. Ausstattungsfilter folgen mit Phase 6."
+        },
+        {
+          "id": "4.3",
+          "title": "Trefferliste + Sortierung",
+          "status": "done",
+          "note": "Trefferliste mit sieben Sortierungen, jeweils nulls last, und seitenweiser Navigation zu 24 Treffern."
+        },
+        {
+          "id": "4.4",
+          "title": "Fahrzeugseite mit technischen Daten, Motor, Ausstattung, Schwachstellen, Kosten, Bewertung",
+          "status": "done",
+          "note": "Fahrzeugseite bereits in Phase 3 gebaut, hier um aehnliche Fahrzeuge ergaenzt."
+        },
+        {
+          "id": "4.5",
+          "title": "Aehnliche Fahrzeuge",
+          "status": "done",
+          "note": "Aehnlich heisst: Leistung plus minus ein Viertel, gleiche Karosserieform, anderes Modell."
+        },
+        {
+          "id": "4.6",
+          "title": "Performance: Indizes, Caching, Pagination",
+          "status": "done",
+          "note": "Fuenf Indizes mit status an erster Stelle, Treffer und Gesamtzahl in einer Runde, feste Seitengroesse, Katalogseiten statisch mit Erneuerung alle fuenf Minuten."
+        },
+        {
+          "id": "4.7",
+          "title": "Abschluss: Tests, Gehirn, Commit",
+          "status": "done",
+          "note": "25 neue Tests. Ein stiller Fehler gefunden: Baujahrfilter verwarfen Zeichenketten aus der Adresszeile, die Suche fiel unbemerkt auf ungefiltert zurueck."
+        }
+      ]
+    },
+    {
+      "id": "phase-5",
+      "number": 5,
+      "name": "Motorvarianten & technische Daten",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 1/2",
+      "tasks": [
+        {
+          "id": "5.1",
+          "title": "Vollstaendiges Motordatenmodell",
+          "status": "done",
+          "note": "Motordaten ergaenzt um Abgasnorm, Sitzplaetze, Tueren, Zuladung, Anhaengelast gebremst und ungebremst sowie elektrische Reichweite."
+        },
+        {
+          "id": "5.2",
+          "title": "Belegpflicht je Wert (Quelle + Abrufdatum)",
+          "status": "done",
+          "note": "Quellen koennen benennen, welche Werte sie decken (coversFields), zusaetzlich zum Abrufdatum. Ohne Angabe deckt eine Quelle den ganzen Eintrag - das bleibt der Regelfall."
+        },
+        {
+          "id": "5.3",
+          "title": "Einschaetzungsfelder mit Belegtyp",
+          "status": "done",
+          "note": "Wartung, Schwachstellen, Zuverlaessigkeit, Reparaturkosten, Versicherung, Alltag, Langstrecke, Stadt, Anhaenger und Tuning liegen in den Wissenstabellen aus Phase 3, jeweils mit Belegmodell."
+        },
+        {
+          "id": "5.4",
+          "title": "Marktfelder mit Stichprobengroesse",
+          "status": "done",
+          "note": "Wiederverkaufswert und Nachfrage als Marktbeobachtung mit Stichprobengroesse und Stichtag; Guete wird bei kleiner Stichprobe gedeckelt."
+        },
+        {
+          "id": "5.5",
+          "title": "Verstaendliche Darstellung technischer Daten fuer Laien",
+          "status": "done",
+          "note": "Eigene Seite je Motorvariante mit Antrieb, Fahrleistungen, Verbrauch und Abgas, Alltag und Zuladung - Fachbegriffe mit Erklaerung, fehlende Werte ausgewiesen."
+        },
+        {
+          "id": "5.6",
+          "title": "Abschluss: Tests, Gehirn, Commit",
+          "status": "done",
+          "note": "11 neue Tests. Vertauschte Anhaengelasten werden abgelehnt, weil die Verwechslung im Betrieb gefaehrlich ist."
+        }
+      ]
+    },
+    {
+      "id": "phase-6",
+      "number": 6,
+      "name": "Ausstattungsvarianten & Sonderausstattung",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 1/2",
+      "tasks": [
+        {
+          "id": "6.1",
+          "title": "Ausstattungslinien je Generation erfassen",
+          "status": "done",
+          "note": "Ausstattungslinien je Generation, mit Zeitraum und Beschreibung."
+        },
+        {
+          "id": "6.2",
+          "title": "Sonderausstattungskatalog",
+          "status": "done",
+          "note": "Sonderausstattungskatalog je Hersteller mit Bestellnummer, Kategorie und Beschreibung."
+        },
+        {
+          "id": "6.3",
+          "title": "Verfuegbarkeitsmatrix Serie/optional/Paket x Baujahre x Motoren x Linien",
+          "status": "done",
+          "note": "OptionAvailability um Motorvariante und Paket erweitert. Vier optionale Einschraenkungen: Linie, Motor, Paket, Zeitraum. Duplikatschutz zusaetzlich in der Anwendung, weil PostgreSQL NULL-Werte als verschieden behandelt."
+        },
+        {
+          "id": "6.4",
+          "title": "Erkennungsmerkmale je Ausstattung",
+          "status": "done",
+          "note": "howToIdentify je Ausstattung, auf der Ausstattungsseite als eigener Abschnitt."
+        },
+        {
+          "id": "6.5",
+          "title": "Seltenheit, Kaufrelevanz, Wiederverkaufsrelevanz",
+          "status": "done",
+          "note": "Seltenheit, Kaufrelevanz und Wiederverkaufsrelevanz mit eigenem Belegmodell. SPECIFICATION ist dabei nicht waehlbar - Bestellquoten stehen in keinem Datenblatt."
+        },
+        {
+          "id": "6.6",
+          "title": "UI: Ausstattungsseiten",
+          "status": "done",
+          "note": "Ausstattungsseite je Generation: Linien, Pakete und Sonderausstattung nach Kategorie, jeweils mit Verfuegbarkeit und Erkennungsmerkmal."
+        },
+        {
+          "id": "6.7",
+          "title": "Abschluss: Tests, Gehirn, Commit",
+          "status": "done",
+          "note": "13 neue Tests. Serienmaessig und nur-im-Paket zugleich wird abgelehnt."
+        }
+      ]
+    },
+    {
+      "id": "phase-7",
+      "number": 7,
+      "name": "KI-Verkaufsassistent & VIN-Analyse",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 4 + 6",
+      "tasks": [
+        {
+          "id": "7.1",
+          "title": "VIN-Validierung (Pruefziffer ISO 3779, WMI)",
+          "status": "done",
+          "note": "decodeVin mit Pruefziffer nach ISO 3779; 8 Testfaelle in packages/core/src/vin/decode.test.ts"
+        },
+        {
+          "id": "7.2",
+          "title": "VIN-Aufloesung zu Fahrzeug, Modell, Generation, Motor",
+          "status": "done",
+          "note": "Bewusst als Vorschlag statt Aufloesung: Ein Test prueft, dass das Ergebnis keine Schluessel model/engine/generation hat (B7)"
+        },
+        {
+          "id": "7.3",
+          "title": "Gefuehrte Aufloesung bei Mehrdeutigkeit",
+          "status": "done",
+          "note": "Auswahl aus veroeffentlichten Katalogeintraegen; ohne Treffer sagt die Seite das, statt eine Auswahl zu erfinden"
+        },
+        {
+          "id": "7.4",
+          "title": "Formular fuer Benutzerangaben",
+          "status": "done",
+          "note": "Alle Angaben freiwillig; Widersprueche (unfallfrei + Unfallbeschreibung) und Erstzulassung in der Zukunft werden abgelehnt"
+        },
+        {
+          "id": "7.5",
+          "title": "KI-Ausgabe: Verkaufstitel",
+          "status": "done"
+        },
+        {
+          "id": "7.6",
+          "title": "KI-Ausgabe: Kurzbeschreibung + ausfuehrliche Beschreibung",
+          "status": "done"
+        },
+        {
+          "id": "7.7",
+          "title": "KI-Ausgabe: technische Daten, Ausstattung, Verkaeufertext, Kleinanzeigen-Version",
+          "status": "done",
+          "note": "Vier Texte von der KI (Titel, Kurz, Lang, Kleinanzeigen). Technische Daten und Ausstattung schreibt die KI NICHT -- sie kommen als feste Bloecke aus dem bestaetigten Katalogeintrag (components/sales/VehicleFacts.tsx), sonst koennte ein Sprachmodell technische Daten erfinden."
+        },
+        {
+          "id": "7.8",
+          "title": "Feld-Guard: nur belegte Felder als KI-Kontext, Verkaeuferperspektive",
+          "status": "done",
+          "note": "AiListingContext ist die Whitelist -- ein Typ, keine Prompt-Bitte. Tests suchen VIN und Motorcode im serialisierten Kontext"
+        },
+        {
+          "id": "7.9",
+          "title": "Token-Kopplung: keine KI-Ausfuehrung ohne ausreichendes Guthaben",
+          "status": "done",
+          "note": "isAvailable() vor der Reservierung; unbrauchbare Ausgabe gibt die Reservierung frei; Referenz enthaelt updatedAt, daher wird ein unveraenderter Entwurf nur einmal berechnet"
+        },
+        {
+          "id": "7.10",
+          "title": "Security: VIN und Benutzerdaten, Datensparsamkeit",
+          "status": "done",
+          "note": "VIN nie in einer URL (Formulare POST + Hydrationssperre), nie an die KI, zusaetzlich vinHash fuer spaetere Duplikaterkennung"
+        },
+        {
+          "id": "7.11",
+          "title": "Abschluss: Tests, Security Review, Gehirn, Commit",
+          "status": "done",
+          "note": "315 Tests gruen, zweimal hintereinander; Browserdurchlauf ohne Konsolenfehler. Behoben: Passwort in der Adresszeile, Verweise auf ungebaute Bereiche, Ersatzwerte fuer Benutzerkennung und VIN-Hash, Live-Tests sperrten sich an der Anmelde-Ratenbegrenzung gegenseitig aus."
+        }
+      ]
+    },
+    {
+      "id": "phase-8",
+      "number": 8,
+      "name": "Fahrzeugbewertung & Wiederverkaufswert",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 5",
+      "blockedBy": [
+        "B4"
+      ],
+      "tasks": [
+        {
+          "id": "8.1",
+          "title": "Bewertungs-Eingangsdaten zusammenfuehren",
+          "status": "done",
+          "note": "Aus dem bestaetigten Katalogeintrag und den Angaben des Entwurfs; Standort bewusst nicht, solange es keine Marktdaten gibt, gegen die sich Regionalitaet pruefen liesse"
+        },
+        {
+          "id": "8.2",
+          "title": "Berechnungslogik",
+          "status": "done",
+          "note": "packages/core/src/valuation/factors.ts -- Faktoren mit Richtung, Gewicht und Begruendung, Gesamtsumme begrenzt"
+        },
+        {
+          "id": "8.3",
+          "title": "Vergleichsfahrzeuge + Marktnachfrage",
+          "status": "done",
+          "note": "Schnittstelle MarketDataSource gebaut, Quelle weiterhin offen (B4). MarketBasis verlangt Stichprobe, Zeitraum, Quelle und Angebots- vs. erzielter Preis"
+        },
+        {
+          "id": "8.4",
+          "title": "Ausgabe: Marktwert, empfohlener Inseratspreis, realistische Verkaufsspanne",
+          "status": "done",
+          "note": "Nur mit Grundwert. Ohne Marktdaten sind alle drei Felder null, nicht geschaetzt"
+        },
+        {
+          "id": "8.5",
+          "title": "Werttreiber, wertmindernde Faktoren, Begruendung",
+          "status": "done",
+          "note": "valueDrivers und valueReducers getrennt, jeder Faktor mit Begruendung in ganzen Saetzen"
+        },
+        {
+          "id": "8.6",
+          "title": "Schaetzungs-Kennzeichnung, keine erfundenen Marktwerte",
+          "status": "done",
+          "note": "Kern der Phase. Keine Zahl ohne Grundwert; Annahmen benannt, versioniert und bei jedem Ergebnis mit ausgegeben; Hinweis \"Schaetzung, kein Gutachten\" immer dabei"
+        },
+        {
+          "id": "8.7",
+          "title": "Abschluss: Tests, Gehirn, Commit",
+          "status": "done",
+          "note": "35 neue Tests (350 insgesamt), Browserdurchlauf ohne Konsolenfehler"
+        }
+      ]
+    },
+    {
+      "id": "phase-9",
+      "number": 9,
+      "name": "Automarktplatz & Fahrzeuganzeigen",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 7",
+      "tasks": [
+        {
+          "id": "9.1",
+          "title": "Anzeigen-Datenmodell + Statusmodell",
+          "status": "done",
+          "note": "Eigene Tabelle statt Sicht auf den Entwurf (ADR-007). Statusuebergaenge als Tabelle, Verkauft und Geloescht sind Endzustaende. Sichtbarkeit prueft Status UND Ablaufdatum"
+        },
+        {
+          "id": "9.2",
+          "title": "Anzeige erstellen und bearbeiten",
+          "status": "done",
+          "note": "Anzeige entsteht aus dem bestaetigten Entwurf, Angaben werden kopiert. Fahrzeugzuordnung danach festgeschrieben"
+        },
+        {
+          "id": "9.3",
+          "title": "Veroeffentlichen, pausieren, loeschen, als verkauft markieren",
+          "status": "done",
+          "note": "Statuswechsel mit begruendeter Ablehnung; die Oberflaeche bietet nur an, was die Domaenenschicht auch zulaesst"
+        },
+        {
+          "id": "9.4",
+          "title": "Bilder-Upload mit Validierung",
+          "status": "done",
+          "note": "Pruefung am Dateianfang statt am gemeldeten Medientyp, danach Neukodierung als WebP -- damit sind EXIF-Daten und damit der Aufnahmeort weg (ADR-008)"
+        },
+        {
+          "id": "9.5",
+          "title": "Favoriten",
+          "status": "done",
+          "note": "Merken nur fuer sichtbare Anzeigen, Entfernen immer. Verkaufte und abgelaufene bleiben in der Liste und werden gekennzeichnet"
+        },
+        {
+          "id": "9.6",
+          "title": "Suche und Filter fuer Anzeigen",
+          "status": "done",
+          "note": "Filter mit Wandlung aus Zeichenketten UND Behandlung leerer Felder -- ein leeres Feld brach vorher die ganze Suche"
+        },
+        {
+          "id": "9.7",
+          "title": "Security: Ownership-Pruefung fuer Nutzer und Haendler",
+          "status": "done",
+          "note": "sellerId steht in jeder schreibenden WHERE-Bedingung; fremde Anzeigen sind 404, nicht 403"
+        },
+        {
+          "id": "9.8",
+          "title": "SEO fuer oeffentliche Anzeigen",
+          "status": "done",
+          "note": "Sprechende Adresse mit Zufallsteil, eigene Metadaten je Anzeige, schema.org nur mit dem, was auch auf der Seite steht, Sitemap nur mit sichtbaren Anzeigen, robots bis zur Produktionsfreigabe gesperrt"
+        },
+        {
+          "id": "9.9",
+          "title": "Abschluss: Tests, Security Review, Gehirn, Commit",
+          "status": "done",
+          "note": "403 Tests, Browserdurchlauf ohne Konsolenfehler; ein Fund behoben (leere Filterfelder)"
+        }
+      ]
+    },
+    {
+      "id": "phase-10",
+      "number": 10,
+      "name": "Haendlerbereich & Haendlertools",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 8",
+      "tasks": [
+        {
+          "id": "10.1",
+          "title": "Haendlerprofil: Logo, Kontakt, Adresse, Oeffnungszeiten",
+          "status": "done",
+          "note": "Profil, Logo (neu kodiert wie Anzeigenbilder), Kontakt, vollstaendige Anschrift und Oeffnungszeiten in Minuten seit Mitternacht; USt-IdNr. nur auf Form geprueft"
+        },
+        {
+          "id": "10.2",
+          "title": "Fahrzeugbestand",
+          "status": "done",
+          "note": "Bestandstabelle mit allen Zustaenden, Bildern, Aufrufen und der einstellenden Person"
+        },
+        {
+          "id": "10.3",
+          "title": "Anzeigenverwaltung",
+          "status": "done",
+          "note": "Anzeigen des Betriebs ueber die Anzeigenverwaltung aus Phase 9; beim Anlegen laesst sich waehlen, ob im Namen des Betriebs inseriert wird"
+        },
+        {
+          "id": "10.4",
+          "title": "Mitarbeiter und Rollen",
+          "status": "done",
+          "note": "Aufnehmen nur bestehender Konten; letzter Inhaber und die eigene Rolle sind gesperrt"
+        },
+        {
+          "id": "10.5",
+          "title": "KI-Beschreibungen im Haendlerkontext",
+          "status": "done",
+          "note": "Der Verkaufsassistent aus Phase 7 gilt unveraendert; ein eigener Haendlerkontext waere ohne Haendlerdaten in der KI-Whitelist nicht umsetzbar und wurde bewusst nicht erfunden"
+        },
+        {
+          "id": "10.6",
+          "title": "Statistiken",
+          "status": "done",
+          "note": "Kennzahlen tragen ihren Zustand mit (ADR-009). Anfragen erscheinen NICHT als 0, Standzeit als Median, Tokenverbrauch als benannte Naeherung"
+        },
+        {
+          "id": "10.7",
+          "title": "Security: Mandantentrennung + strikte Mitarbeiterrechte",
+          "status": "done",
+          "note": "Haendlerkennung kommt aus der Sitzung, nie aus der Anfrage; sie steht in jeder Bedingung. Mitarbeiter bekommen die Mitarbeiterliste gar nicht erst geliefert"
+        },
+        {
+          "id": "10.8",
+          "title": "Abschluss: Tests, Security Review, Gehirn, Commit",
+          "status": "done",
+          "note": "435 Tests, Browserdurchlauf ohne Konsolenfehler; ein Fund behoben (fester Logoschluessel gegen unveraenderliche Zwischenspeicherung)"
+        }
+      ]
+    },
+    {
+      "id": "phase-11",
+      "number": 11,
+      "name": "Token-System, Billing & Rechnungen",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 3",
+      "tasks": [
+        {
+          "id": "11.1",
+          "title": "Token-Datenmodell + Wallet",
+          "status": "done",
+          "note": "Vorgezogen fuer Phase 7. Wallet mit Guthaben und reserviertem Anteil, ganzzahlig."
+        },
+        {
+          "id": "11.2",
+          "title": "Transaktionstypen",
+          "status": "done",
+          "note": "PURCHASE, USAGE, REFUND, ADMIN_CREDIT, ADMIN_DEBIT, ADJUSTMENT. Verbrauch negativ gebucht, Stand danach mitgefuehrt."
+        },
+        {
+          "id": "11.3",
+          "title": "Anzeige: Guthaben, gekaufte Tokens, verbrauchte Tokens, Historie",
+          "status": "done",
+          "note": "Guthabenseite unter /konto/guthaben mit Stand, reserviertem Anteil, Preisliste und Historie."
+        },
+        {
+          "id": "11.4",
+          "title": "Security: keine negativen Guthaben, Race Conditions, Doppeltransaktionen, serverseitige Pruefung",
+          "status": "done",
+          "note": "Bedingte UPDATEs statt Lesen-Pruefen-Schreiben, eindeutige Vorgangskennung gegen Doppelbuchung, CHECK-Bedingungen in der Datenbank, Reservierung mit Ablauf. Getestet mit sieben gleichzeitigen Reservierungen."
+        },
+        {
+          "id": "11.5",
+          "title": "Vollstaendige Audit Logs",
+          "status": "done",
+          "note": "Verbrauch, Gutschrift und Abbuchung landen im Audit-Log, administrative Korrekturen mit Pflichtbegruendung."
+        },
+        {
+          "id": "11.6",
+          "title": "Billing-Abstraktion providerunabhaengig",
+          "status": "done",
+          "note": "PaymentProvider mit genau den fuenf Methoden aus dem Plan; kein nachgebauter Anbieter (ADR-010). handleWebhook bekommt den Rohkoerper, weil Signaturen ueber unveraenderte Bytes gebildet werden"
+        },
+        {
+          "id": "11.7",
+          "title": "Rechnungsdatenmodell",
+          "status": "done",
+          "note": "Invoice, InvoiceItem, PaymentIntent und ein Nummernzaehler je Jahr. Rechnungsnummer ist der Schluessel; Anschrift und Steuersatz werden mit der Rechnung eingefroren"
+        },
+        {
+          "id": "11.8",
+          "title": "Rechnungserstellung",
+          "status": "done",
+          "note": "Nummernvergabe atomar per upsert+increment in derselben Transaktion. Test legt acht Rechnungen gleichzeitig an und prueft acht lueckenlose Nummern"
+        },
+        {
+          "id": "11.9",
+          "title": "Rechnungslogik an rechtliche Anforderungen anpassbar halten",
+          "status": "done",
+          "note": "Steuersatz und Hinweistext je Rechnung, Nummernformat an einer Stelle, Anschrift beim Erstellen. Keine rechtlichen Zusicherungen -- das steht auch auf der Rechnungsseite"
+        },
+        {
+          "id": "11.10",
+          "title": "Abschluss: Tests, Security Review, Gehirn, Commit",
+          "status": "done",
+          "note": "471 Tests gruen"
+        }
+      ]
+    },
+    {
+      "id": "phase-12",
+      "number": 12,
+      "name": "Messaging & Benachrichtigungen",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 7",
+      "tasks": [
+        {
+          "id": "12.1",
+          "title": "Conversations-Modell",
+          "status": "done",
+          "note": "Zwei feste Seiten statt Teilnehmertabelle; je Anzeige und anfragender Person genau ein Gespraech (Eindeutigkeitsbedingung gegen Posteingangsflut)"
+        },
+        {
+          "id": "12.2",
+          "title": "Messages: gelesen/ungelesen, Zeitstempel, Fahrzeugbezug",
+          "status": "done",
+          "note": "readAt statt Bool (ein Bool verlore, WANN gelesen wurde); Fahrzeugbezug kopiert, damit das Gespraech nach dem Loeschen der Anzeige lesbar bleibt"
+        },
+        {
+          "id": "12.3",
+          "title": "Benachrichtigungen",
+          "status": "done",
+          "note": "Eigene Tabelle statt Zaehlung. Der Nachrichtentext steht NICHT in der Benachrichtigung -- sie wird an Stellen gelesen, an denen jemand mitliest"
+        },
+        {
+          "id": "12.4",
+          "title": "Security: IDOR-Schutz + Berechtigungspruefung",
+          "status": "done",
+          "note": "assertBeteiligt wirft NOT_FOUND statt FORBIDDEN; Pruefung doppelt (Domaenenschicht und WHERE-Bedingung). Test: Unbeteiligte bekommen 404 beim Lesen und Schreiben"
+        },
+        {
+          "id": "12.5",
+          "title": "Rate Limiting + Spam Protection",
+          "status": "done",
+          "note": "Zwei Zaehler zusaetzlich zur Ratenbegrenzung: neue Gespraeche und Nachrichten je Stunde. Betrugsmuster warnen, sperren aber nicht (ADR-011)"
+        },
+        {
+          "id": "12.6",
+          "title": "Sichere Anhaenge",
+          "status": "done",
+          "note": "Nur Bilder, jedes dekodiert und als WebP neu geschrieben (ADR-008). Beliebige Dateien waeren ein Verteilweg fuer Schadsoftware; hoechstens fuenf je Nachricht, Frist zehn Minuten"
+        },
+        {
+          "id": "12.7",
+          "title": "Abschluss: Tests, Security Review, Gehirn, Commit",
+          "status": "done",
+          "note": "502 Tests gruen, Browserdurchlauf ohne Konsolenfehler"
+        }
+      ]
+    },
+    {
+      "id": "phase-13",
+      "number": 13,
+      "name": "Adminbereich & Moderation",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 1 (Redaktion) + 10",
+      "tasks": [
+        {
+          "id": "13.1",
+          "title": "Adminrollen ADMIN und SUPER_ADMIN, serverseitig erzwungen",
+          "status": "done",
+          "note": "ADMIN_ROLE_ASSIGN ist die einzige Erweiterung von SUPER_ADMIN gegenueber ADMIN; Adminbereich antwortet Unbefugten mit 404, nicht 403"
+        },
+        {
+          "id": "13.2",
+          "title": "Verwaltung: Benutzer und Haendler",
+          "status": "done",
+          "note": "Benutzerliste mit Suche und Rollenfilter; Sperren beendet die Sitzungen der Person"
+        },
+        {
+          "id": "13.3",
+          "title": "Verwaltung: Automotive-Stammdaten",
+          "status": "done",
+          "note": "Stammdaten laufen unveraendert ueber den Redaktionsablauf aus Phase 2 (Rolle EDITOR)"
+        },
+        {
+          "id": "13.4",
+          "title": "Verwaltung: Fahrzeuge und Anzeigen",
+          "status": "done",
+          "note": "Moderation entzieht Sichtbarkeit (PAUSED), loescht nicht -- dieselbe Massnahme stellt zurueck"
+        },
+        {
+          "id": "13.5",
+          "title": "Verwaltung: Tokens, Orders, Payments, Rechnungen",
+          "status": "done",
+          "note": "Guthaben, Rechnungen und Zahlungen sind je Person einsehbar; Guthabenkorrektur mit Pflichtbegruendung besteht seit Phase 11a"
+        },
+        {
+          "id": "13.6",
+          "title": "Einsicht: KI-Nutzung, Security Events, Audit Logs",
+          "status": "done",
+          "note": "Ausgewaehlte Sicherheitsereignisse auf der Uebersicht, vollstaendiges Protokoll auf eigener Seite. Das Protokoll wird gezeigt, nicht bearbeitet"
+        },
+        {
+          "id": "13.7",
+          "title": "Moderation",
+          "status": "done",
+          "note": "Anzeigen und Nachrichten, jede Massnahme mit Pflichtbegruendung im Protokoll"
+        },
+        {
+          "id": "13.8",
+          "title": "Abschluss: Tests, Security Review, Gehirn, Commit",
+          "status": "done",
+          "note": "528 Tests gruen"
+        }
+      ]
+    },
+    {
+      "id": "phase-14",
+      "number": 14,
+      "name": "Kompletter Systemtest & Fehlerbehebung",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 10",
+      "tasks": [
+        {
+          "id": "14.1",
+          "title": "Kaeufer-Flow Ende-zu-Ende testen",
+          "status": "done",
+          "note": "Finden, ansehen, merken, anschreiben -- samt Benachrichtigung ohne Nachrichtentext"
+        },
+        {
+          "id": "14.2",
+          "title": "Verkaeufer-Flow Ende-zu-Ende testen",
+          "status": "done",
+          "note": "VIN, Bestaetigung, Angaben, Bewertung, Anzeige mit Bild, Veroeffentlichen. Dazwischen geprueft, was NICHT geht"
+        },
+        {
+          "id": "14.3",
+          "title": "Haendler-Flow Ende-zu-Ende testen",
+          "status": "done",
+          "note": "Haendler sieht nur den eigenen Betrieb; eine fremde Anzeige taucht im Bestand nicht auf"
+        },
+        {
+          "id": "14.4",
+          "title": "Token-Flow Ende-zu-Ende testen",
+          "status": "done",
+          "note": "Bewertung ohne Marktdaten kostet nichts, Kauf ohne Zahlungsweg endet mit 501"
+        },
+        {
+          "id": "14.5",
+          "title": "Admin-Flow Ende-zu-Ende testen",
+          "status": "done",
+          "note": "Moderation blendet aus und stellt zurueck, beides im Protokoll mit Begruendung"
+        },
+        {
+          "id": "14.6",
+          "title": "Security-Tests",
+          "status": "done",
+          "note": "Sammelpruefung auf Fremdzugriff ueber alle Rollen (nie 200) plus zehn Sicherheitsproben: SQL, XSS, Cookie-Merkmale, Massenzuweisung, Koerpergroesse, gefaelschte Sitzung, Fehlermeldungen, Ratenbegrenzung, Medientyp, Clickjacking"
+        },
+        {
+          "id": "14.7",
+          "title": "Gefundene Fehler reproduzieren, Ursache finden, beheben, erneut testen",
+          "status": "done",
+          "note": "In dieser Phase keine neuen Fehler gefunden. Das ist kein Beweis fuer Fehlerfreiheit, sondern die Auskunft, dass die Pruefungen nichts zutage gefoerdert haben"
+        },
+        {
+          "id": "14.8",
+          "title": "Abschluss: Build, Code Review, Security Review, Gehirn, Commit",
+          "status": "done",
+          "note": "548 Tests gruen, Browserdurchlauf ueber alle Bereiche ohne Konsolenfehler"
+        }
+      ]
+    },
+    {
+      "id": "phase-15",
+      "number": 15,
+      "name": "Finaler Produktions-Audit",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 10/11",
+      "tasks": [
+        {
+          "id": "15.1",
+          "title": "Design-Audit",
+          "status": "done",
+          "note": "Farbtokens an einer Stelle, Kontraste gemessen und dokumentiert (Fliesstext 17,6:1). Kein Befund"
+        },
+        {
+          "id": "15.2",
+          "title": "UX-Audit",
+          "status": "done",
+          "note": "Alle Formulare mit Absende-Handler haben eine Hydrationssperre. Kleiner Befund: Beschriftung der Eingabefelder uneinheitlich (Label vs. aria-label)"
+        },
+        {
+          "id": "15.3",
+          "title": "Performance-Audit",
+          "status": "done",
+          "note": "Antwortzeiten 5-25 ms lokal, gemeinsames JavaScript 103 kB, 71 Indizes. Befund behoben: Obergrenzen fuer die dreizehn mit dem Katalog wachsenden Abfragen"
+        },
+        {
+          "id": "15.4",
+          "title": "Security-Audit",
+          "status": "done",
+          "note": "Zehn Sicherheitsproben bestanden. Befund behoben: Moderationsgrund wird jetzt angezeigt"
+        },
+        {
+          "id": "15.5",
+          "title": "Automotive-Audit",
+          "status": "done",
+          "note": "Kein Befund. Was nicht belegt ist, wird nicht behauptet -- durchgehend"
+        },
+        {
+          "id": "15.6",
+          "title": "Plattform-Audit",
+          "status": "done",
+          "note": "Abhaengigkeitsrichtung strikt, jede externe Abhaengigkeit hinter einer Schnittstelle mit Ersatzvariante. Kein Befund"
+        },
+        {
+          "id": "15.7",
+          "title": "SEO-Audit",
+          "status": "done",
+          "note": "Sprechende Adressen, Metadaten je Anzeige, schema.org nur mit Gezeigtem. robots.txt sperrt bis zur Freigabe alles -- gewollt, vor dem Start umzustellen"
+        },
+        {
+          "id": "15.8",
+          "title": "Testing-Audit",
+          "status": "done",
+          "note": "548 Tests. Befund groesstenteils behoben: zwei stille Ueberspringzweige laufen jetzt echt, zwei melden sich ehrlich als uebersprungen"
+        },
+        {
+          "id": "15.9",
+          "title": "PRODUCTION_READINESS.md erstellen",
+          "status": "done",
+          "note": "PRODUCTION_READINESS.md mit elf Befunden, davon drei in dieser Phase behoben"
+        },
+        {
+          "id": "15.10",
+          "title": "Final: Tests, Security Review, Code Review, Build, Gehirn, Changelog, finaler Commit",
+          "status": "done",
+          "note": "546 bestanden, 2 uebersprungen; typecheck und lint sauber, Build laeuft"
+        }
+      ]
+    },
+    {
+      "id": "phase-16",
+      "goal": "Motoren und Ausstattungen verknuepfen, jede Angabe mit Guetekennzeichen, Bilder nur bei passender Zuordnung, Daten nur ueber eine Import-Pipeline mit Quellenpflicht.",
+      "tasks": [
+        {
+          "id": "16.1",
+          "title": "Verfuegbarkeitsarten statt Wahrheitswert (Serie / Aufpreis / Paket / Sondermodell / marktabhaengig)",
+          "status": "done"
+        },
+        {
+          "id": "16.2",
+          "title": "Guetekennzeichen und Pruefdatum an allen Katalogtabellen",
+          "status": "done"
+        },
+        {
+          "id": "16.3",
+          "title": "Motorfamilie, Motordetails je Motorcode, Modelljahr",
+          "status": "done"
+        },
+        {
+          "id": "16.4",
+          "title": "Lackfarben, Radvarianten, Sondermodelle",
+          "status": "done"
+        },
+        {
+          "id": "16.5",
+          "title": "Bildmodell mit Herkunftspflicht und merkmalsgenauer Bindung",
+          "status": "done"
+        },
+        {
+          "id": "16.6",
+          "title": "Bildzuordnung: Widerspruch schliesst aus, Luecke wird ausgewiesen",
+          "status": "done"
+        },
+        {
+          "id": "16.7",
+          "title": "Automatische Qualitaetskontrolle gegen innere Widersprueche",
+          "status": "done"
+        },
+        {
+          "id": "16.8",
+          "title": "Import-Pipeline mit Quellenpflicht, Probelauf und Bericht",
+          "status": "done"
+        },
+        {
+          "id": "16.9",
+          "title": "Ausstattungschecker mit drei Zustaenden und Prozentwert",
+          "status": "done"
+        },
+        {
+          "id": "16.10",
+          "title": "Fahrzeugvergleich, der Luecken nicht als schlechtere Werte wertet",
+          "status": "done"
+        },
+        {
+          "id": "16.11",
+          "title": "Smart-Suche fuer Motorcodes, Baureihen und Bestellnummern",
+          "status": "done"
+        },
+        {
+          "id": "16.12",
+          "title": "Datenbestandsseite ohne Quote bei unbelegter Gesamtzahl",
+          "status": "done"
+        },
+        {
+          "id": "16.13",
+          "title": "HSN/TSN-Suche",
+          "status": "done"
+        },
+        {
+          "id": "16.14",
+          "title": "Mein Fahrzeug mit Merkzettel",
+          "status": "done"
+        },
+        {
+          "id": "16.15",
+          "title": "Verwaltung: Datenqualitaet, Dubletten, Review-Liste",
+          "status": "done"
+        },
+        {
+          "id": "16.16",
+          "title": "Mobile Navigation (vorher auf dem Handy gar nicht vorhanden)",
+          "status": "done"
+        },
+        {
+          "id": "16.17",
+          "title": "Tests, Reviews, Sicherheitspruefung, Doku",
+          "status": "done"
+        }
+      ],
+      "number": 16,
+      "name": "Datenbank-Ausbau, Bildarchitektur und Qualitaetskontrolle",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 16 (Datenbank-Ausbau)"
+    },
+    {
+      "id": "phase-17",
+      "number": 17,
+      "name": "Zahlungsanbieter, Bildherkunft und Deployment",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 17 (ADR-012 bis ADR-015)",
+      "goal": "Die vier offenen Entscheidungen technisch umsetzen: Vercel, Bildpriorität mit Rechtsstand, Mollie, KI-Bilder mit Merkmalsvorgabe.",
+      "tasks": [
+        {
+          "id": "17.1",
+          "title": "Mollie-Adapter gegen den offiziellen Client",
+          "status": "done"
+        },
+        {
+          "id": "17.2",
+          "title": "Webhook-Endpunkt mit Nachfrage beim Anbieter",
+          "status": "done"
+        },
+        {
+          "id": "17.3",
+          "title": "Anbieterkennung durch die Bestaetigungskette fuehren",
+          "status": "done"
+        },
+        {
+          "id": "17.4",
+          "title": "sourceType und licenceStatus an Bildern",
+          "status": "done"
+        },
+        {
+          "id": "17.5",
+          "title": "Rechtsstand als harte Sperre vor der Zuordnung",
+          "status": "done"
+        },
+        {
+          "id": "17.6",
+          "title": "Anweisung fuer erzeugte Bilder aus belegten Angaben",
+          "status": "done"
+        },
+        {
+          "id": "17.7",
+          "title": "Vercel-Konfiguration und Betriebsanleitung",
+          "status": "done"
+        },
+        {
+          "id": "17.8",
+          "title": "Bildablage auf serverlosen Umgebungen ehrlich abweisen",
+          "status": "done"
+        },
+        {
+          "id": "17.9",
+          "title": "CI-Pruefung bei jedem Push",
+          "status": "done"
+        },
+        {
+          "id": "17.10",
+          "title": "Tests, Doku, Entscheidungsprotokoll",
+          "status": "done"
+        },
+        {
+          "id": "17.11",
+          "title": "E-Mail-Versand ueber SMTP (Blocker B8)",
+          "status": "done"
+        },
+        {
+          "id": "17.12",
+          "title": "Einmal-Token fuer Bestaetigung und Zuruecksetzung",
+          "status": "done"
+        },
+        {
+          "id": "17.13",
+          "title": "Seiten und Routen fuer Passwort vergessen, neu setzen, Adresse bestaetigen",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "phase-18",
+      "number": 18,
+      "name": "Katalogansichten vervollstaendigen und Redaktionsarbeitsplatz",
+      "status": "done",
+      "percentComplete": 100,
+      "brainMapping": "Automotive-Plattform Phase 18",
+      "goal": "Alles Gebaute auch sichtbar und bedienbar machen -- Datenmodelle ohne Oberflaeche sind keine fertigen Bereiche.",
+      "tasks": [
+        {
+          "id": "18.1",
+          "title": "Modelljahre, Sondermodelle, Lackfarben und Radvarianten an der Generationsseite",
+          "status": "done"
+        },
+        {
+          "id": "18.2",
+          "title": "Schwachstelle: behoben ab Baujahr mit Erkennungsmerkmal",
+          "status": "done"
+        },
+        {
+          "id": "18.3",
+          "title": "Zuverlaessigkeitsnote mit Herleitung auf der Motorseite",
+          "status": "done"
+        },
+        {
+          "id": "18.4",
+          "title": "Merken fuer Katalogeintraege mit Ansicht im Konto",
+          "status": "done"
+        },
+        {
+          "id": "18.5",
+          "title": "Redaktionsarbeitsplatz: Entwuerfe pruefen, freigeben, zurueckziehen",
+          "status": "done"
+        },
+        {
+          "id": "18.6",
+          "title": "Demobestand raeumt die neuen Tabellen mit ab",
+          "status": "done"
+        },
+        {
+          "id": "18.7",
+          "title": "Doppelte Rangfolge zusammengefuehrt, Begrenzungen an Schreibendpunkten",
+          "status": "done"
+        },
+        {
+          "id": "18.8",
+          "title": "Tests, Mobilpruefung, Antwortzeiten",
+          "status": "done"
+        }
+      ]
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-08-21",
+      "event": "Fortschrittssystem eingerichtet",
+      "detail": "MASTERPLAN.md.txt gelesen (1597 Zeilen, 16 Phasen). Projektordner analysiert. Gehirn im Obsidian-Vault gefunden. 137 Aufgaben abgeleitet. STATUS.md und PROGRESS.json angelegt."
+    },
+    {
+      "date": "2026-08-21",
+      "event": "Phase 0 abgeschlossen - Architektur-Blocker dokumentiert",
+      "detail": "Blocker B1 ausfuehrlich im Gehirn dokumentiert (09-Architekturentscheidung-Frontend-Backend.md) mit 4 Varianten, Zielarchitektur, Sicherheits- und Skalierungskonzept. Vorgaben C1 (kein Stripe) und C2 (kein Matrix) sowie PostgreSQL-Bestaetigung ins Entscheidungsprotokoll uebernommen. Aufgaben 0.8 und 0.9 ergaenzt, Gesamtzahl auf 139 erhoeht. Keine Aenderung an der bestehenden Architektur, kein Produktcode - auf ausdrueckliche Anweisung."
+    },
+    {
+      "date": "2026-08-21",
+      "event": "Phase 1 abgeschlossen - Architektur und Fundament",
+      "detail": "Blocker B1 durch ADR-001 geloest (Next.js + Route Handlers, Domaenenlogik in packages/core). Monorepo mit vier Paketen aufgesetzt, Astro abgeloest. Prisma-Schema fuer Identitaet und Zugriff erzeugt und migriert. Eigene Sitzungsauthentifizierung, Rechtematrix mit sechs Rollen, zentrale Fehlertaxonomie, Security-Header und CSP. Designsystem Schwarz + Neon Rot mit nachgerechneten Kontrastwerten samt Basiskomponenten. 97 Tests gruen. Wichtigster Fund: Eine Nonce-CSP legt statisch vorgerenderte Seiten still - zwei Seiten waren ohne JavaScript. Behoben und durch einen Test gegen das Build-Manifest abgesichert. Neue Blocker B7 (VIN nicht ueber WMI hinaus aufloesbar) und B8 (kein E-Mail-Versandweg) aufgenommen, B4 auf hoch heraufgestuft."
+    },
+    {
+      "date": "2026-08-21",
+      "event": "Phase 2 abgeschlossen - Automotive-Datenbank",
+      "detail": "Katalogschema mit 13 Tabellen erzeugt und migriert. Drei praegende Entscheidungen: Fahrleistungen haengen an der Antriebskombination statt am Motor, Motoren und Sonderausstattung haengen am Hersteller statt am Modell, und jeder Eintrag durchlaeuft DRAFT - IN_REVIEW - PUBLISHED, wobei ohne mindestens eine Quelle nicht veroeffentlicht wird. Erfassen und Freigeben sind getrennte Rechte, was Blocker B3 technisch vorbereitet. Verbrauchswerte tragen immer ihren Messzyklus. Leistung wird nur in Kilowatt gespeichert, PS wird berechnet. Elf Endpunkte, davon zwei oeffentlich lesend. 36 neue Tests."
+    },
+    {
+      "date": "2026-08-21",
+      "event": "Phase 3 abgeschlossen - Fahrzeug-Wissensdatenbank",
+      "detail": "Vier Wissenstabellen und drei erzwungene Belegmodelle. Eine belegte Angabe braucht eine belastbare Quellenart; eine Pressemitteilung genuegt dafuer ausdruecklich nicht. Eine Einschaetzung braucht eine Begruendung und gilt nie als gut belegt. Eine Marktbeobachtung braucht Datengrundlage und Stichtag und veraltet nach zwei Jahren sichtbar. Katalogseiten von Hersteller bis Generation, Glossar mit 14 Begriffen. Zwei Anzeigefehler gefunden und behoben: die Guetedeckelung war implementiert, aber nicht angewandt, und die Quellenarten waren fest verdrahtet statt geladen. Beides ist jetzt in der Anzeigekomponente gebuendelt, wo es nicht mehr vergessen werden kann. Demobestand ist ausdruecklich als frei erfunden gekennzeichnet."
+    },
+    {
+      "date": "2026-08-22",
+      "event": "Phase 4 abgeschlossen - Fahrzeugsuche",
+      "detail": "Gesucht wird nach Motorvariante statt nach Generation, weil die geforderten Filter genau dort unterscheiden. Filter ohne JavaScript als Links, Auswahl mit Trefferzahl, sieben Sortierungen mit nulls last, seitenweise Navigation, aehnliche Fahrzeuge. Preis-, Kilometer- und Standortfilter bewusst nicht umgesetzt: sie gehoeren zu einer Anzeige und gibt es erst mit Phase 9. Ein stiller Fehler gefunden und behoben: die Baujahrfilter erwarteten Zahlen, aus der Adresszeile kommen Zeichenketten - die Suche fiel unbemerkt auf ungefiltert zurueck, und zwei Tests waren aus dem falschen Grund gruen."
+    },
+    {
+      "date": "2026-08-22",
+      "event": "Phase 5 abgeschlossen - Motorvarianten und technische Daten",
+      "detail": "Technische Felder ergaenzt: Abgasnorm, Sitzplaetze, Tueren, Zuladung, Anhaengelast gebremst und ungebremst, elektrische Reichweite. Quellen koennen jetzt benennen, welche Werte sie decken - Belegpflicht je Wert statt je Eintrag, denn ein Datenblatt belegt die Leistung, sagt aber nichts ueber die Anhaengelast. Eigene Seite je Motorvariante mit erklaerten Fachbegriffen. Vertauschte Anhaengelasten werden abgelehnt, weil die Verwechslung im Betrieb gefaehrlich ist. Die Variantenseite prueft den vollstaendigen Pfad, damit es nicht beliebig viele Adressen fuer denselben Inhalt gibt."
+    },
+    {
+      "date": "2026-08-22",
+      "event": "Phase 6 abgeschlossen - Ausstattungsvarianten",
+      "detail": "Verfuegbarkeitsmatrix ueber Baujahr, Ausstattungslinie, Motorvariante und Paket. Duplikatschutz zusaetzlich in der Anwendung, weil die Eindeutigkeitsbedingung in PostgreSQL bei NULL-Werten nicht greift. Seltenheit und Relevanz tragen ein eigenes Belegmodell, bei dem SPECIFICATION gar nicht waehlbar ist - Bestellquoten stehen in keinem Datenblatt. Serienmaessig und nur-im-Paket zugleich wird als Widerspruch abgelehnt. Ausstattungsseite je Generation mit Erkennungsmerkmalen. Ausserdem: nicht-interaktives Migrationsskript, weil prisma migrate dev in dieser Umgebung bei rueckfragepflichtigen Aenderungen abbricht."
+    },
+    {
+      "date": "2026-08-22",
+      "event": "Phase 11a vorgezogen - Token-Guthaben",
+      "detail": "Aus Phase 11 vorgezogen, weil Phase 7 verlangt: keine KI-Ausfuehrung ohne ausreichendes Guthaben. Verfahren: reservieren, ausfuehren, buchen -- ein gescheiterter Aufruf kostet nichts, ein erfolgreicher wird genau einmal berechnet. Gleichzeitigkeit ueber bedingte UPDATEs geloest statt ueber Lesen-Pruefen-Schreiben; getestet mit sieben gleichzeitigen Reservierungen, von denen genau drei gelingen duerfen. Doppelbuchungen durch eindeutige Vorgangskennung ausgeschlossen. CHECK-Bedingungen in der Datenbank als letzte Verteidigungslinie. Billing und Rechnungen bleiben in Phase 11."
+    },
+    {
+      "date": "2026-08-22",
+      "phase": "phase-7",
+      "summary": "KI-Verkaufsassistent und VIN-Analyse abgeschlossen. B7 durch den Ablauf geloest: VIN schlaegt vor, Verkaeufer bestaetigt aus dem Katalog. Feld-Guard als Typ; technische Daten und Ausstattung bewusst nicht von der KI, sondern aus dem Katalog. Browserdurchlauf und Durchsicht deckten drei Fehler auf (Passwort in der Adresszeile, Verweise ins Leere, stille Ersatzwerte), alle behoben und mit Tests abgesichert. Live-Tests legen ihre Sitzung jetzt direkt an, damit sie sich nicht an der Anmelde-Ratenbegrenzung gegenseitig aussperren."
+    },
+    {
+      "date": "2026-08-22",
+      "phase": "phase-8",
+      "summary": "Fahrzeugbewertung abgeschlossen. Kern: ohne Marktdaten kein Eurobetrag (ADR-006). Faktorenmodell mit begruendeten Einzelfaktoren, benannte und versionierte Annahmen, bezahlte Bewertungen werden gespeichert. B4 ist nicht mehr blockierend -- es fehlt nur noch die Quelle selbst."
+    },
+    {
+      "date": "2026-08-22",
+      "phase": "phase-9",
+      "summary": "Marktplatz abgeschlossen. Anzeigen kopieren den Entwurf statt ihn zu verwenden (ADR-007); Bilder werden neu geschrieben statt uebernommen, damit der Aufnahmeort aus den EXIF-Daten verschwindet (ADR-008). Browserdurchlauf deckte auf, dass ein leeres Filterfeld die ganze Suche brach -- behoben und mit Test abgesichert."
+    },
+    {
+      "date": "2026-08-22",
+      "phase": "phase-10",
+      "summary": "Haendlerbereich abgeschlossen. Mandantentrennung ueber die Sitzung statt ueber die Anfrage; Rollen sind Rechte, keine Anzeige. Kennzahlen tragen ihren Zustand mit (ADR-009) -- Anfragen erscheinen nicht als 0, weil es die Nachrichten noch nicht gibt."
+    },
+    {
+      "date": "2026-08-22",
+      "phase": "phase-11",
+      "summary": "Billing und Rechnungen abgeschlossen. Zahlungsschnittstelle ohne nachgebauten Anbieter (ADR-010); Kauf endet ohne Zahlungsweg mit 501 und ohne Vorgang in der Datenbank. Rechnungsnummern atomar und lueckenlos, mit Test auf gleichzeitige Aufrufe. Betraege in ganzen Cent, Steuersatz als Einstellung, mit jeder Rechnung eingefroren."
+    },
+    {
+      "date": "2026-08-22",
+      "phase": "phase-12",
+      "summary": "Nachrichten abgeschlossen, vollstaendig plattformintern (C2, kein Matrix Synapse). IDOR-Schutz ueber NOT_FOUND statt FORBIDDEN, doppelt geprueft. Betrugsmuster warnen, sperren nicht (ADR-011). Anhaenge nur als neu kodierte Bilder. Unsichtbare Steuerzeichen werden aus Nachrichten entfernt -- und aus dem eigenen Quelltext."
+    },
+    {
+      "date": "2026-08-22",
+      "phase": "phase-13",
+      "summary": "Adminbereich abgeschlossen. Vier Sperren bei der Rollenvergabe (nur SUPER_ADMIN, nicht die eigene Rolle, nicht die letzte, keine Haendlerrollen), Sperren beendet Sitzungen, jede Massnahme mit Pflichtbegruendung im Protokoll. Moderation entzieht Sichtbarkeit statt zu loeschen; das Protokoll wird gezeigt, nicht bearbeitet."
+    },
+    {
+      "date": "2026-08-22",
+      "phase": "phase-14",
+      "summary": "Systemtest abgeschlossen. Ein Ende-zu-Ende-Test quer durch alle Rollen, eine Sammelpruefung auf Fremdzugriff (nie 200) und zehn Sicherheitsproben. Keine neuen Fehler gefunden -- was nicht Fehlerfreiheit heisst, sondern dass diese Pruefungen nichts zutage gefoerdert haben."
+    },
+    {
+      "date": "2026-08-22",
+      "phase": "phase-15",
+      "summary": "Produktions-Audit abgeschlossen, PRODUCTION_READINESS.md erstellt. Elf Befunde, drei davon in dieser Phase behoben. Ergebnis: technisch lauffaehig und in sich schluessig, aber nicht produktionsbereit -- es fehlen Katalogdaten, ein Zahlungsanbieter, ein E-Mail-Versandweg und eine Marktdatenquelle. Keins davon laesst sich mit Code loesen."
+    },
+    {
+      "date": "2026-08-23",
+      "phase": "phase-16",
+      "summary": "Datenbank-Ausbau abgeschlossen. OptionAvailability.standard war ein Wahrheitswert und liess vier Sachverhalte zusammenfallen -- ersetzt durch AvailabilityKind mit fuenf Werten. Guetekennzeichen (DataQuality) getrennt vom Belegmodell. Bildzuordnung disqualifiziert bei Widerspruch statt abzuwerten. Vollstaendigkeit nur mit belegtem Nenner. Import-Pipeline mit Trockenlauf und Quellenpflicht."
+    },
+    {
+      "date": "2026-08-23",
+      "phase": "phase-17",
+      "summary": "Mollie angebunden (ADR-012); dabei fiel auf, dass confirmTokenPurchase dem Anbieter die eigene Vorgangskennung uebergab -- mit dem Attrappenanbieter unsichtbar, im Echtbetrieb waere jede Bestaetigung fehlgeschlagen. Bildherkunft mit Rechtsstand (ADR-013, ADR-014): Lizenz entscheidet vor Passgenauigkeit. Vercel als Host (ADR-015). E-Mail ueber SMTP (ADR-016), loest B8."
+    },
+    {
+      "date": "2026-08-23",
+      "phase": "phase-18",
+      "summary": "Katalogansichten vervollstaendigt: Modelljahre, Sondermodelle, Lackfarben, Radvarianten, Bewertungen und Merkzettel waren im Datenmodell vorhanden und nicht erreichbar. Redaktionsarbeitsplatz unter /admin/katalog mit Statuswechsel und Dublettensuche. KnownIssue kann jetzt enden (resolvedFromYear). Behoben: zeitabhaengiger Live-Test durch eigene Aufruferadresse je Aufruf."
+    },
+    {
+      "date": "2026-08-23",
+      "phase": "phase-18",
+      "summary": "Nacharbeit an den Audit-Befunden 4 und 10. Indexierung: robots.txt und Meta-Angabe widersprachen sich (robots gab in Produktion frei, das Layout sperrte fest) -- beide lesen jetzt SUCHMASCHINEN_INDEXIEREN, nicht NODE_ENV, damit keine Vorschau in den Index geraet. Formulare: vier Bausteine bauten Beschriftung und Feld von Hand nach; dabei fielen 14px-Schrift (iOS zoomt) und 36-38px hohe Felder auf. Neue Browserpruefung npm run pruefe:formulare deckt beides dauerhaft ab."
+    },
+    {
+      "date": "2026-08-23",
+      "phase": "phase-18",
+      "summary": "Verkaufsablauf zu Ende gebaut: Die erzeugten Texte lassen sich jetzt einzeln kopieren. Drei Stufen, weil navigator.clipboard nur in sicherem Kontext existiert -- im eigenen Netz ueber http gibt es sie nicht, und ein stummer Knopf waere schlimmer als keiner. Dazu zwei Browserrundgaenge (pruefe:formulare oeffentlich, rundgang:verkaufen angemeldet), die Beschriftung, Schriftgroesse, Feldhoehe und Ueberbreite dauerhaft absichern."
+    },
+    {
+      "date": "2026-08-23",
+      "phase": "phase-18",
+      "summary": "Startpunkt 6 der Startliste erledigt: npm run admin:erster legt den ersten SUPER_ADMIN an oder ernennt ihn -- Passwort nie als Aufrufparameter, Abbruch wenn schon einer existiert, Eintrag ins Pruefprotokoll. Behoben: /api/health antwortete mit 200, obwohl die Datenbank nicht erreichbar war; die Lage stand nur im Rumpf. Ein Lastverteiler liest den Code, nicht den Rumpf -- jetzt 503, im Betrieb geprueft."
+    },
+    {
+      "date": "2026-08-23",
+      "phase": "phase-18",
+      "summary": "Startpunkt 5 erledigt: S3-Adapter fuer die Bildablage, alle fuenf Zugangsdaten oder keiner, Vorrang vor dem Dateisystem. Ein fehlendes Objekt ergibt null, jede andere Stoerung schlaegt durch -- sonst sieht eine kaputte Ablage aus wie eine leere. Dazu npm run diagnose: sagt bei 404 oder nicht startendem Server, woran es liegt (fremde Anwendung auf dem Port, .next ohne Baustand, Datenbank, .env)."
+    },
+    {
+      "date": "2026-08-23",
+      "event": "CSP-Nonce-Fix, Dashboard-Overflow, Rundgang aller Rollen",
+      "detail": "not-found.tsx dynamisch (21 blockierte Skripte behoben), DashboardShell min-w-0 (810px Overflow auf Mobil behoben), rundgang.mjs fuer USER/DEALER_OWNER/SUPER_ADMIN, routing-live.test.ts, pruefsitzung.ts mit --rolle= Parameter"
+    },
+    {
+      "date": "2026-08-24",
+      "event": "Formular-Migration abgeschlossen, Rundgang 0 Befunde",
+      "detail": "186 Befunde (iOS-Zoom, Feldhoehe, fehlende Labels) in 10 Dateien behoben. DealerProfileForm auf InputField/TextareaField migriert, alle Admin-Selects/Inputs vereinheitlicht. Logo-Upload mit aria-label. Browserrundgang bestaetigt 0 Befunde."
+    },
+    {
+      "date": "2026-08-24",
+      "event": "MASTERPLAN_GO_LIVE.md erstellt, Phase G1 erledigt",
+      "detail": "Go-Live-Masterplan mit allen offenen Punkten, Abhaengigkeiten und Reihenfolge erstellt. Phase G1 (technische Vorbereitung) komplett erledigt: PRODUCTION_READINESS.md aktualisiert (712 Tests, Befund 10 vollstaendig behoben), Deployment und Sicherheit geprueft, Dokumentation vervollstaendigt. Alle verbleibenden Aufgaben (G2, G3) erfordern Betreiberentscheidungen oder Zugangsdaten."
+    }
+  ],
+  "datenbestand": {
+    "erhobenAm": "2026-08-23",
+    "erhobenMit": "npx tsx scripts/datenbestand.ts",
+    "hinweis": "Der Bestand besteht ausschliesslich aus dem Demobestand (scripts/seed-demo.ts). Alle Werte darin sind ausdruecklich erfunden und als solche gekennzeichnet. Echte Fahrzeugdaten kommen ueber die Import-Pipeline mit Quellenpflicht.",
+    "zeilen": [
+      {
+        "bereich": "Marken",
+        "erfasst": 1
+      },
+      {
+        "bereich": "Modelle",
+        "erfasst": 1
+      },
+      {
+        "bereich": "Generationen",
+        "erfasst": 1
+      },
+      {
+        "bereich": "Facelift-Phasen",
+        "erfasst": 1
+      },
+      {
+        "bereich": "Modelljahre",
+        "erfasst": 3
+      },
+      {
+        "bereich": "Motoren (Motorcodes)",
+        "erfasst": 2
+      },
+      {
+        "bereich": "Ausstattungscodes",
+        "erfasst": 2
+      },
+      {
+        "bereich": "Motor-Fahrzeug-Zuordnungen",
+        "erfasst": 2
+      },
+      {
+        "bereich": "Ausstattungen",
+        "erfasst": 2
+      },
+      {
+        "bereich": "Ausstattungspakete",
+        "erfasst": 1
+      },
+      {
+        "bereich": "Lackfarben",
+        "erfasst": 3
+      },
+      {
+        "bereich": "Radvarianten",
+        "erfasst": 1
+      },
+      {
+        "bereich": "Sondermodelle",
+        "erfasst": 1
+      },
+      {
+        "bereich": "Bilder mit belegter Herkunft",
+        "erfasst": 0
+      },
+      {
+        "bereich": "Quellenangaben",
+        "erfasst": 14
+      },
+      {
+        "bereich": "Motoren mit erfasstem Motorcode",
+        "erfasst": 2
+      }
+    ],
+    "guete": [
+      {
+        "stufe": "UNVERIFIED",
+        "anzahl": 18
+      }
+    ],
+    "ohneQuelle": 7,
+    "zurPruefung": 0
+  },
+  "nextSteps": [
+    {
+      "priority": 1,
+      "task": "MASTERPLAN_GO_LIVE.md: Phase G1 (technische Vorbereitung)",
+      "status": "done",
+      "detail": "G1.1-G1.7 erledigt: PRODUCTION_READINESS.md aktualisiert (712 Tests), Deployment und Sicherheit geprueft, Dokumentation vervollstaendigt."
+    },
+    {
+      "priority": 2,
+      "task": "MASTERPLAN_GO_LIVE.md: Phase G2 (Betreiberentscheidungen)",
+      "status": "blocked",
+      "detail": "G2.1 Name/Domain/Logo, G2.2 SMTP-Zugangsdaten, G2.3 Mollie-Schluessel, G2.4 S3-Zugangsdaten, G2.5 Katalogdaten, G2.6 Marktdatenquelle -- alles Betreiberentscheidungen."
+    },
+    {
+      "priority": 3,
+      "task": "MASTERPLAN_GO_LIVE.md: Phase G3 (Deployment)",
+      "status": "blocked",
+      "detail": "Wartet auf Phase G2: Env-Vars setzen, DB einrichten, erster SUPER_ADMIN, Testlauf, Suchmaschinenfreigabe."
+    }
+  ]
+}

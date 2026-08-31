@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 300" fill="none">
+  <defs>
+    <linearGradient id="shield-edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d0d0d0"/>
+      <stop offset="30%" stop-color="#f0f0f0"/>
+      <stop offset="50%" stop-color="#b8b8b8"/>
+      <stop offset="70%" stop-color="#e0e0e0"/>
+      <stop offset="100%" stop-color="#a0a0a0"/>
+    </linearGradient>
+    <linearGradient id="shield-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a2a2a"/>
+      <stop offset="40%" stop-color="#1a1a1a"/>
+      <stop offset="100%" stop-color="#0d0d0d"/>
+    </linearGradient>
+    <linearGradient id="car-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a3a3a"/>
+      <stop offset="100%" stop-color="#1a1a1a"/>
+    </linearGradient>
+    <linearGradient id="headlight" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00ccff"/>
+      <stop offset="100%" stop-color="#0088ff"/>
+    </linearGradient>
+    <linearGradient id="chrome-text" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8e8e8"/>
+      <stop offset="40%" stop-color="#f8f8f8"/>
+      <stop offset="60%" stop-color="#c0c0c0"/>
+      <stop offset="100%" stop-color="#d8d8d8"/>
+    </linearGradient>
+    <linearGradient id="red-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ff2244"/>
+      <stop offset="100%" stop-color="#cc1133"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Shield outer (chrome edge) -->
+  <path d="M140 8 L260 55 Q268 58 268 67 L268 170 Q268 220 240 255 L140 292 L40 255 Q12 220 12 170 L12 67 Q12 58 20 55 Z" fill="url(#shield-edge)" filter="url(#shadow)"/>
+
+  <!-- Shield inner (dark body) -->
+  <path d="M140 18 L252 62 Q256 64 256 68 L256 168 Q256 215 230 247 L140 280 L50 247 Q24 215 24 168 L24 68 Q24 64 28 62 Z" fill="url(#shield-body)"/>
+
+  <!-- Car silhouette -->
+  <g transform="translate(60, 80)">
+    <!-- Car body -->
+    <path d="M20 65 Q20 55 30 50 L50 35 Q55 30 65 25 L95 20 Q100 20 105 22 L130 30 Q140 35 145 45 L150 55 Q155 60 155 65 L155 75 Q155 80 150 80 L25 80 Q20 80 20 75 Z" fill="url(#car-body)" stroke="#444" stroke-width="0.5"/>
+    <!-- Windshield -->
+    <path d="M58 37 L85 25 Q90 23 95 23 L100 25 L115 35 Q110 33 80 33 Q65 33 58 37Z" fill="#222" stroke="#555" stroke-width="0.3"/>
+    <!-- Left headlight -->
+    <path d="M25 58 L35 52 Q40 50 45 52 L45 62 Q40 65 35 63 Z" fill="url(#headlight)" filter="url(#glow)"/>
+    <!-- Right headlight -->
+    <path d="M135 52 L145 58 Q145 63 140 63 L135 62 L130 52 Q132 50 135 52Z" fill="url(#headlight)" filter="url(#glow)"/>
+    <!-- Grille -->
+    <path d="M55 58 L115 58 Q118 60 118 63 L118 68 Q118 72 115 72 L55 72 Q52 72 52 68 L52 63 Q52 60 55 58Z" fill="#111" stroke="#333" stroke-width="0.5"/>
+    <!-- Grille lines -->
+    <line x1="60" y1="60" x2="60" y2="70" stroke="#2a2a2a" stroke-width="0.5"/>
+    <line x1="70" y1="60" x2="70" y2="70" stroke="#2a2a2a" stroke-width="0.5"/>
+    <line x1="80" y1="60" x2="80" y2="70" stroke="#2a2a2a" stroke-width="0.5"/>
+    <line x1="90" y1="60" x2="90" y2="70" stroke="#2a2a2a" stroke-width="0.5"/>
+    <line x1="100" y1="60" x2="100" y2="70" stroke="#2a2a2a" stroke-width="0.5"/>
+    <line x1="110" y1="60" x2="110" y2="70" stroke="#2a2a2a" stroke-width="0.5"/>
+  </g>
+
+  <!-- CARO text (chrome) -->
+  <text x="77" y="215" font-family="'Arial Black', 'Impact', sans-serif" font-size="38" font-weight="900" letter-spacing="2" fill="url(#chrome-text)" filter="url(#shadow)">CARO</text>
+
+  <!-- NEX text (red) -->
+  <text x="178" y="215" font-family="'Arial Black', 'Impact', sans-serif" font-size="38" font-weight="900" letter-spacing="2" fill="url(#red-accent)" font-style="italic" filter="url(#shadow)">NEX</text>
+
+  <!-- Red V chevron -->
+  <path d="M130 230 L140 242 L150 230" stroke="url(#red-accent)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Tagline -->
+  <text x="140" y="265" font-family="Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="4" fill="#888" text-anchor="middle">CARS. TRUST. NEXT.</text>
+</svg>

@@ -1,0 +1,19 @@
+{
+  "name": "@ap/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hintergrundprozesse: Jobs, die nicht im Request-Zyklus laufen duerfen.",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "dev": "tsx watch src/main.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ap/core": "workspace:*",
+    "@ap/db": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}

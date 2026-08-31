@@ -1,0 +1,18 @@
+{
+  "name": "@ap/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Domaenenlogik der Plattform. Framework-frei, ohne Abhaengigkeit zu Next.js, Prisma oder HTTP.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@mollie/api-client": "4.6.0",
+    "zod": "^3.24.1"
+  }
+}

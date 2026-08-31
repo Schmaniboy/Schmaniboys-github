@@ -1,0 +1,51 @@
+{
+  "name": "automotive-platform",
+  "private": true,
+  "version": "0.1.0",
+  "description": "CARONEX — Fahrzeugwissen und Fahrzeugverkauf",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "cd apps/web && npx next dev",
+    "dev:netz": "cd apps/web && npx next dev --hostname 0.0.0.0",
+    "build": "cd apps/web && npx next build",
+    "start": "cd apps/web && npx next start",
+    "start:netz": "cd apps/web && npx next start --hostname 0.0.0.0",
+    "worker": "cd apps/worker && tsx src/main.ts",
+    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/db/tsconfig.json && tsc --noEmit -p apps/worker/tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json",
+    "lint": "cd apps/web && npx eslint . --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "status": "node scripts/status.mjs",
+    "db:generate": "cd packages/db && npx prisma generate --schema prisma/schema.prisma",
+    "db:migrate": "npx prisma migrate dev --schema packages/db/prisma/schema.prisma",
+    "db:migrate:create": "node scripts/migrate-create.mjs",
+    "db:deploy": "npx prisma migrate deploy --schema packages/db/prisma/schema.prisma",
+    "db:studio": "npx prisma studio --schema packages/db/prisma/schema.prisma",
+    "db:seed": "node scripts/seed-alle.mjs",
+    "db:seed:demo": "tsx scripts/seed-demo.ts",
+    "admin:erster": "tsx scripts/ersten-admin.ts",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "deploy:pruefen": "tsx scripts/pruefe-deployment.ts",
+    "pruefe:formulare": "node scripts/pruefe-formulare.mjs",
+    "rundgang:verkaufen": "node scripts/rundgang-verkaufen.mjs",
+    "rundgang": "node scripts/rundgang.mjs",
+    "datenbestand": "tsx scripts/datenbestand.ts",
+    "import": "tsx scripts/import-katalog.ts",
+    "netz": "node scripts/netzadresse.mjs",
+    "diagnose": "node scripts/diagnose.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "playwright": "^1.62.1",
+    "prisma": "^6.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

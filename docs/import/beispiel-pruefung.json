@@ -1,0 +1,179 @@
+{
+  "formatVersion": 1,
+  "beschreibung": "PRUEFBEISPIEL -- KEINE ECHTEN FAHRZEUGDATEN. Diese Datei zeigt, was die Qualitaetskontrolle abfaengt. Jeder Datensatz enthaelt absichtlich einen Fehler. Aufruf: npx tsx scripts/import-katalog.ts docs/import/beispiel-pruefung.json",
+  "quelle": {
+    "kind": "OTHER",
+    "title": "Pruefbeispiel der Entwicklung -- keine Fahrzeugquelle",
+    "checkedAt": "2026-08-23"
+  },
+  "hersteller": [
+    {
+      "slug": "pruefmarke",
+      "name": "Pruefmarke (Testdaten)",
+      "country": "Testland"
+    }
+  ],
+  "motoren": [
+    {
+      "herstellerSlug": "pruefmarke",
+      "code": "2.0 TDI",
+      "name": "Handelsname im Codefeld",
+      "fuelType": "DIESEL",
+      "displacementCcm": 1968,
+      "cylinders": 4
+    },
+    {
+      "herstellerSlug": "pruefmarke",
+      "code": "PRUEFE1",
+      "name": "Elektromotor mit Turbolader",
+      "fuelType": "ELECTRIC",
+      "aspiration": "TURBOCHARGED",
+      "displacementCcm": 1600,
+      "powerKw": 150
+    },
+    {
+      "herstellerSlug": "pruefmarke",
+      "code": "PRUEFE2",
+      "name": "Abgasnorm vor ihrer Zeit",
+      "fuelType": "PETROL",
+      "displacementCcm": 1600,
+      "cylinders": 4,
+      "powerKw": 85,
+      "torqueNm": 160,
+      "emissionStandard": "Euro 6",
+      "yearFrom": 1998
+    },
+    {
+      "herstellerSlug": "pruefmarke",
+      "code": "PRUEFE3",
+      "name": "Leistung und Drehmoment passen nicht zusammen",
+      "fuelType": "PETROL",
+      "displacementCcm": 1600,
+      "cylinders": 4,
+      "powerKw": 85,
+      "torqueNm": 900
+    },
+    {
+      "herstellerSlug": "pruefmarke",
+      "code": "PRUEFE4",
+      "name": "Sauberer Datensatz zum Vergleich",
+      "fuelType": "PETROL",
+      "aspiration": "TURBOCHARGED",
+      "displacementCcm": 1598,
+      "cylinders": 4,
+      "cylinderLayout": "R4",
+      "powerKw": 85,
+      "torqueNm": 220,
+      "emissionStandard": "Euro 6",
+      "yearFrom": 2015,
+      "yearTo": 2020,
+      "dataQuality": "UNVERIFIED"
+    }
+  ],
+  "modelle": [
+    {
+      "herstellerSlug": "pruefmarke",
+      "slug": "pruefmodell",
+      "name": "Pruefmodell"
+    }
+  ],
+  "generationen": [
+    {
+      "herstellerSlug": "pruefmarke",
+      "modellSlug": "pruefmodell",
+      "slug": "erste",
+      "name": "Erste Generation",
+      "code": "P1",
+      "bodyType": "Limousine",
+      "yearFrom": 2015,
+      "yearTo": 2020
+    }
+  ],
+  "faceliftphasen": [
+    {
+      "herstellerSlug": "pruefmarke",
+      "modellSlug": "pruefmodell",
+      "generationSlug": "erste",
+      "slug": "vor-der-generation",
+      "name": "Phase, die vor ihrer Generation beginnt",
+      "yearFrom": 2010
+    }
+  ],
+  "antriebe": [
+    {
+      "herstellerSlug": "pruefmarke",
+      "modellSlug": "pruefmodell",
+      "generationSlug": "erste",
+      "motorCode": "GIBTESNICHT",
+      "getriebe": {
+        "name": "Pruefgetriebe",
+        "type": "MANUAL",
+        "gears": 6
+      },
+      "driveType": "FRONT"
+    },
+    {
+      "herstellerSlug": "pruefmarke",
+      "modellSlug": "pruefmodell",
+      "generationSlug": "erste",
+      "motorCode": "PRUEFE4",
+      "getriebe": {
+        "name": "Pruefgetriebe",
+        "type": "MANUAL",
+        "gears": 6
+      },
+      "driveType": "FRONT",
+      "powerKw": 85,
+      "consumptionCombined": 5.4
+    }
+  ],
+  "ausstattungen": [
+    {
+      "herstellerSlug": "pruefmarke",
+      "slug": "pruefausstattung",
+      "name": "Pruefausstattung",
+      "area": "INTERIOR"
+    }
+  ],
+  "verfuegbarkeiten": [
+    {
+      "herstellerSlug": "pruefmarke",
+      "ausstattungSlug": "pruefausstattung",
+      "modellSlug": "pruefmodell",
+      "generationSlug": "erste",
+      "kind": "MARKET_SPECIFIC"
+    }
+  ],
+  "bilder": [
+    {
+      "kind": "VEHICLE_EXTERIOR",
+      "origin": "PRESS",
+      "sourceType": "ORIGINAL",
+      "herstellerSlug": "pruefmarke",
+      "licence": "Pruefbeispiel",
+      "description": "Bild ohne Fundstelle und ohne Urheber."
+    },
+    {
+      "kind": "VEHICLE_EXTERIOR",
+      "origin": "AI_GENERATED",
+      "sourceType": "ORIGINAL",
+      "herstellerSlug": "pruefmarke",
+      "licence": "Pruefbeispiel",
+      "description": "Erzeugtes Bild, das als Originalaufnahme eingeordnet ist.",
+      "generatedByModel": "pruefmodell-bild",
+      "generatedPrompt": "Pruefanweisung"
+    },
+    {
+      "kind": "VEHICLE_EXTERIOR",
+      "origin": "WIKIMEDIA",
+      "sourceType": "ORIGINAL",
+      "licenceStatus": "UNCLEAR",
+      "herstellerSlug": "pruefmarke",
+      "sourceUrl": "https://commons.wikimedia.invalid/beispiel.jpg",
+      "sourceTitle": "Pruefbeispiel Wikimedia",
+      "author": "Pruefperson",
+      "licence": "CC BY-SA 4.0",
+      "description": "Vollstaendig belegt, aber Rechtsstand noch nicht geprueft."
+    }
+  ]
+}

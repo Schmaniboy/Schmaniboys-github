@@ -1,0 +1,69 @@
+name: Prüfung
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruefung:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: pruefung
+          POSTGRES_PASSWORD: pruefung
+          POSTGRES_DB: caronex_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+
+    env:
+      DATABASE_URL: postgresql://pruefung:pruefung@127.0.0.1:5432/caronex_test?schema=public
+      APP_URL: http://127.0.0.1:3000
+      IP_HASH_SECRET: nur-fuer-die-pruefung-nicht-fuer-den-betrieb
+      SESSION_SECRET: nur-fuer-die-pruefung-nicht-fuer-den-betrieb
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Schema einspielen
+        run: pnpm db:deploy
+
+      - name: Prisma-Client erzeugen
+        run: pnpm db:generate
+
+      - name: Typen prüfen
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

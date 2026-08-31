@@ -1,0 +1,23 @@
+{
+  "formatVersion": 1,
+  "beschreibung": "Geruest einer Importdatei. Alle Listen sind leer -- fuellen Sie nur, was Sie belegen koennen.",
+  "quelle": {
+    "kind": "MANUFACTURER_DOCUMENT",
+    "title": "HIER DIE UNTERLAGE EINTRAGEN, ETWA: BMW 3er G20, Preisliste 03/2019",
+    "url": "https://example.invalid/unterlage.pdf",
+    "publishedOn": "2019-03-01",
+    "checkedAt": "2026-08-23",
+    "coversFields": []
+  },
+  "hersteller": [],
+  "motorfamilien": [],
+  "motoren": [],
+  "modelle": [],
+  "generationen": [],
+  "faceliftphasen": [],
+  "antriebe": [],
+  "ausstattungen": [],
+  "verfuegbarkeiten": [],
+  "bilder": [],
+  "hsnTsn": []
+}

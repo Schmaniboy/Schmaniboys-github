@@ -1,0 +1,2671 @@
+// Datenmodell der CARONEX-Plattform.
+//
+// Aufbau in zwei Haelften:
+//   1. Identitaet und Zugriff  -- Benutzer, Sitzungen, Haendler, Audit (Phase 1)
+//   2. Automotive-Katalog      -- Hersteller bis Sonderausstattung (Phase 2)
+//
+// Grundsaetze:
+// - Jede Tabelle, deren Inhalt redaktionell gepflegt wird, fuehrt einen
+//   Redaktionsstatus und eine Quellenangabe. Ohne Quelle keine Veroeffentlichung
+//   (Vorgabe C3, keine erfundenen Daten).
+// - Loeschungen sind, wo sie Historie zerstoeren wuerden, Statuswechsel.
+// - Geldbetraege niemals als Float. Ganzzahlige Cent bzw. Decimal.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Identitaet und Zugriff
+// ---------------------------------------------------------------------------
+
+/// Muss mit Role in packages/core/src/auth/roles.ts uebereinstimmen.
+/// Die Rechte selbst stehen nur dort -- diese Aufzaehlung traegt nur die Rolle.
+enum Role {
+  USER
+  DEALER_OWNER
+  DEALER_STAFF
+  EDITOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  /// Registriert, E-Mail noch nicht bestaetigt. Siehe offener Punkt B8.
+  PENDING_VERIFICATION
+  ACTIVE
+  /// Durch die Administration gesperrt. Sitzungen werden dabei verworfen.
+  BLOCKED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  /// Immer in Kleinbuchstaben gespeichert; die Normalisierung erzwingt die
+  /// Validierung in packages/core. Eindeutigkeit gilt damit ohne citext.
+  email        String     @unique
+  /// Format: scrypt$N$r$p$salt$hash. Parameter stehen im Wert, damit sie
+  /// spaeter erhoeht werden koennen, ohne Passwoerter ungueltig zu machen.
+  passwordHash String
+  displayName  String
+  role         Role       @default(USER)
+  status       UserStatus @default(ACTIVE)
+
+  emailVerifiedAt DateTime?
+
+  /// Sperre nach zu vielen Fehlversuchen. Kontobezogen, nicht IP-bezogen --
+  /// eine reine IP-Begrenzung laesst sich verteilt umgehen.
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+
+  /// Gesetzt, wenn die Person zu einem Haendler gehoert. Traegt die
+  /// Mandantentrennung im Haendlerbereich.
+  dealerId String?
+  dealer   Dealer? @relation(fields: [dealerId], references: [id], onDelete: SetNull)
+
+  sessions              Session[]
+  auditLogs             AuditLog[]        @relation("AuditActor")
+  wallet                Wallet?
+  listingDrafts         ListingDraft[]
+  listings              Listing[]
+  favorites             ListingFavorite[]
+  paymentIntents        PaymentIntent[]
+  invoices              Invoice[]
+  startedConversations  Conversation[]    @relation("ConversationInitiator")
+  receivedConversations Conversation[]    @relation("ConversationRecipient")
+  messages              Message[]
+  notifications         Notification[]
+  catalogFavorites      CatalogFavorite[]
+  vehicles              UserVehicle[]
+  oneTimeTokens         OneTimeToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dealerId])
+  @@index([status])
+}
+
+model Session {
+  id String @id @default(cuid())
+
+  /// SHA-256 des Sitzungstokens. Der Klartext steht ausschliesslich im Cookie.
+  /// Ein Datenbankleck gibt damit keine gueltigen Sitzungen preis.
+  tokenHash String @unique
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Gleitender Ablauf, begrenzt durch die absolute Laufzeit ab createdAt.
+  expiresAt  DateTime
+  lastSeenAt DateTime @default(now())
+
+  /// Nur Hash und Kurzform -- Rohe IP-Adressen werden nicht gespeichert.
+  ipHash          String?
+  userAgentDigest String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+enum DealerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+model Dealer {
+  id     String       @id @default(cuid())
+  name   String
+  slug   String       @unique
+  status DealerStatus @default(PENDING)
+
+  // --- Profil (Phase 10) ----------------------------------------------------
+  /// Kurzbeschreibung des Betriebs. Freiwillig.
+  description String?
+
+  /// Ablageschluessel des Logos. Wie Anzeigenbilder: neu kodiert abgelegt,
+  /// nie die hochgeladene Datei selbst.
+  logoStorageKey String?
+
+  contactEmail String?
+  contactPhone String?
+  websiteUrl   String?
+
+  /// Anschrift. Anders als bei privaten Anzeigen gehoert sie hier vollstaendig
+  /// hin: Ein gewerblicher Anbieter ist zur Anbieterkennzeichnung verpflichtet.
+  street     String?
+  postalCode String?
+  city       String?
+
+  /// Umsatzsteuer-Identifikationsnummer, sofern vorhanden. Wird NICHT auf
+  /// Gueltigkeit geprueft -- dafuer braeuchte es eine Abfrage beim
+  /// Bundeszentralamt, und eine selbst gebaute Pruefung waere geraten.
+  vatId String?
+
+  members      User[]
+  listings     Listing[]
+  openingHours DealerOpeningHour[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+/// Oeffnungszeiten eines Haendlers.
+///
+/// Eine Zeile je Zeitspanne, nicht je Tag: Mittagspausen sind der Normalfall,
+/// und "08:00-12:00, 13:00-18:00" laesst sich mit einer Zeile je Tag nicht
+/// abbilden, ohne in ein Textfeld auszuweichen.
+model DealerOpeningHour {
+  id String @id @default(cuid())
+
+  dealerId String
+  dealer   Dealer @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+
+  /// 1 = Montag bis 7 = Sonntag, nach ISO 8601. Nicht 0-basiert: Bei
+  /// 0 = Sonntag verrechnet sich frueher oder spaeter jemand.
+  weekday Int
+
+  /// Minuten seit Mitternacht. Minuten statt Uhrzeit, weil sich damit ohne
+  /// Zeitzonen rechnen laesst -- Oeffnungszeiten sind Ortszeit, immer.
+  opensMinute  Int
+  closesMinute Int
+
+  @@unique([dealerId, weekday, opensMinute])
+  @@index([dealerId])
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+
+  /// Wertebereich siehe AuditAction in packages/core/src/ports/audit.ts.
+  action String
+
+  /// Null bei anonymen oder systemseitigen Vorgaengen.
+  actorId String?
+  actor   User?   @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  subjectType String
+  subjectId   String?
+
+  /// Nur unbedenkliche Zusatzinformationen. Niemals Passwoerter, Tokens,
+  /// vollstaendige VIN oder Zahlungsdaten.
+  metadata Json?
+
+  ipHash String?
+
+  createdAt DateTime @default(now())
+
+  @@index([action, createdAt])
+  @@index([actorId, createdAt])
+  @@index([subjectType, subjectId])
+}
+
+// ---------------------------------------------------------------------------
+// Automotive-Katalog (Phase 2)
+//
+// Kette: Hersteller -> Modell -> Generation -> Facelift-Phase
+//        Motor + Getriebe + Antrieb -> Antriebskombination
+//        Ausstattungslinie, Sonderausstattung, Paket
+//
+// Zwei Entscheidungen praegen dieses Modell:
+//
+// 1. FAHRLEISTUNGEN HAENGEN AN DER KOMBINATION, NICHT AM MOTOR.
+//    Derselbe Motor beschleunigt in einem Kombi mit Allrad und Automatik
+//    anders als in einer Limousine mit Handschaltung und Heckantrieb. Wer
+//    0-100 am Motor speichert, muss den Wert spaeter ueberall korrigieren.
+//    Deshalb traegt PowertrainCombination die Zahlen.
+//
+// 2. JEDE HARTE ZAHL BRAUCHT EINE QUELLE (Vorgabe C3).
+//    Katalogeintraege durchlaufen DRAFT -> IN_REVIEW -> PUBLISHED. Ohne
+//    mindestens eine Quelle wird nicht veroeffentlicht; das erzwingt die
+//    Domaenenschicht, nicht die Oberflaeche.
+// ---------------------------------------------------------------------------
+
+/// Redaktionsstand eines Katalogeintrags.
+/// Oeffentlich sichtbar ist ausschliesslich PUBLISHED.
+enum EditorialStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  /// Nicht geloescht, sondern zurueckgezogen -- Historie bleibt erhalten.
+  ARCHIVED
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  HYBRID_PETROL
+  HYBRID_DIESEL
+  PLUGIN_HYBRID
+  ELECTRIC
+  LPG
+  CNG
+  HYDROGEN
+  OTHER
+}
+
+enum Aspiration {
+  NATURALLY_ASPIRATED
+  TURBOCHARGED
+  SUPERCHARGED
+  TWINCHARGED
+  ELECTRIC_DRIVE
+  OTHER
+}
+
+enum TransmissionType {
+  MANUAL
+  AUTOMATIC_TORQUE_CONVERTER
+  AUTOMATED_MANUAL
+  DUAL_CLUTCH
+  CVT
+  /// Einganggetriebe im Elektrofahrzeug.
+  REDUCTION_GEAR
+  OTHER
+}
+
+enum DriveType {
+  FRONT
+  REAR
+  ALL
+}
+
+/// Messzyklus eines Verbrauchswerts.
+/// Ohne diese Angabe waeren Verbrauchszahlen nicht vergleichbar: derselbe
+/// Wagen hat nach NEFZ und nach WLTP unterschiedliche Werte. Beides in eine
+/// Spalte zu werfen waere eine stille Datenverfaelschung.
+enum MeasurementStandard {
+  NEDC
+  WLTP
+  EPA
+  MANUFACTURER
+  UNKNOWN
+}
+
+/// Art einer Quelle. Bestimmt, wie belastbar eine Angabe ist.
+enum SourceKind {
+  /// Herstellerunterlage, Datenblatt, Preisliste -- hoechste Guete.
+  MANUFACTURER_DOCUMENT
+  TYPE_APPROVAL
+  PRESS_RELEASE
+  TECHNICAL_LITERATURE
+  MEASUREMENT
+  OTHER
+}
+
+/// Quellenangabe zu einem Katalogeintrag.
+///
+/// Bewusst polymorph (subjectType + subjectId) statt einer Verknuepfungs-
+/// tabelle je Entitaet: sonst braeuchte es acht nahezu gleiche Tabellen.
+/// Der Preis ist eine fehlende Fremdschluesselbindung -- dagegen steht, dass
+/// Quellen ausschliesslich ueber die Domaenenschicht geschrieben werden und
+/// verwaiste Eintraege dort auffallen.
+model Source {
+  id String @id @default(cuid())
+
+  subjectType String
+  subjectId   String
+
+  kind        SourceKind @default(OTHER)
+  /// Titel oder Bezeichnung der Unterlage.
+  title       String
+  /// Adresse, falls die Quelle im Netz liegt. Buecher haben keine.
+  url         String?
+  /// Datum der Unterlage, nicht des Abrufs.
+  publishedOn DateTime?
+  /// Wann zuletzt geprueft (Abrufdatum). Eine Quelle von 2019 ist nicht
+  /// falsch, aber alt -- und das gehoert dem Leser gesagt.
+  checkedAt   DateTime   @default(now())
+  note        String?
+
+  /// Welche Werte diese Quelle deckt, etwa ["powerKw", "torqueNm"].
+  ///
+  /// Belegpflicht je Wert statt je Eintrag: Ein Datenblatt belegt die
+  /// Leistung, sagt aber nichts ueber die Anhaengelast. Bleibt die Liste
+  /// leer, gilt die Quelle fuer den gesamten Eintrag -- das ist der Regelfall
+  /// und bleibt zulaessig.
+  coversFields String[] @default([])
+
+  createdAt DateTime @default(now())
+
+  @@index([subjectType, subjectId])
+}
+
+model Manufacturer {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  /// Land des Stammsitzes. Optional -- nicht immer eindeutig.
+  country String?
+
+  /// Weltweite Herstellerkennungen aus der VIN (erste drei Zeichen).
+  /// Das ist der einzige Teil der VIN, der ohne Zusatzdaten belegbar ist.
+  wmiCodes String[] @default([])
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  models  Model[]
+  engines Engine[]
+  options OptionalEquipment[]
+
+  engineFamilies EngineFamily[]
+  paintColors    PaintColor[]
+  wheelOptions   WheelOption[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+/// Karosserieform. Als Tabelle statt als Aufzaehlung, weil die Liste offen
+/// ist und ohne Migration erweiterbar bleiben soll.
+model BodyType {
+  id   String @id @default(cuid())
+  name String @unique
+  slug String @unique
+
+  generations Generation[]
+  images      CatalogImage[]
+
+  createdAt DateTime @default(now())
+}
+
+model Model {
+  id String @id @default(cuid())
+
+  manufacturerId String
+  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Restrict)
+
+  name String
+  slug String
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  generations Generation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Verhindert zwei "3er" beim selben Hersteller.
+  @@unique([manufacturerId, slug])
+  @@index([status])
+}
+
+model Generation {
+  id String @id @default(cuid())
+
+  modelId String
+  model   Model  @relation(fields: [modelId], references: [id], onDelete: Restrict)
+
+  /// Anzeigename, etwa "6. Generation".
+  name String
+  /// Interne Baureihenbezeichnung, etwa "F30". Nicht jeder Hersteller hat eine.
+  code String?
+  slug String
+
+  bodyTypeId String?
+  bodyType   BodyType? @relation(fields: [bodyTypeId], references: [id], onDelete: SetNull)
+
+  /// Produktionszeitraum. yearTo offen, solange gebaut wird.
+  yearFrom Int
+  yearTo   Int?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  faceliftPhases   FaceliftPhase[]
+  powertrains      PowertrainCombination[]
+  trimLines        TrimLine[]
+  packages         EquipmentPackage[]
+  optionOffers     OptionAvailability[]
+  knownIssues      KnownIssue[]
+  maintenanceItems MaintenanceItem[]
+  costEstimates    CostEstimate[]
+  knowledgeNotes   KnowledgeNote[]
+
+  modelYears      ModelYear[]
+  specialEditions SpecialEdition[]
+  paintOffers     PaintColorAvailability[]
+  wheelOffers     WheelOptionAvailability[]
+  hsnTsnEntries   HsnTsnEntry[]
+  userVehicles    UserVehicle[]
+  images          CatalogImage[]
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([modelId, slug])
+  @@index([status])
+  @@index([yearFrom, yearTo])
+}
+
+/// Facelift-Phase innerhalb einer Generation.
+/// Eigene Tabelle statt eines Feldes an der Generation: eine Generation kann
+/// mehr als ein Facelift haben, und Ausstattung aendert sich oft genau dort.
+model FaceliftPhase {
+  id String @id @default(cuid())
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  /// Etwa "Vorfacelift" oder "LCI".
+  name String
+  slug String
+
+  yearFrom Int
+  yearTo   Int?
+
+  /// Woran die Phase von aussen zu erkennen ist. Fuer Kaufinteressenten oft
+  /// wichtiger als das Baujahr, weil Fahrzeuge umgebaut sein koennen.
+  distinguishingFeatures String?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  modelYears      ModelYear[]
+  powertrains     PowertrainCombination[]
+  optionOffers    OptionAvailability[]
+  paintOffers     PaintColorAvailability[]
+  wheelOffers     WheelOptionAvailability[]
+  specialEditions SpecialEdition[]
+  userVehicles    UserVehicle[]
+  images          CatalogImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([generationId, slug])
+}
+
+/// Motor. Haengt am Hersteller, nicht am Modell -- derselbe Motor laeuft in
+/// mehreren Baureihen und teils in mehreren Marken eines Konzerns.
+model Engine {
+  id String @id @default(cuid())
+
+  manufacturerId String
+  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Restrict)
+
+  /// Handelsname, etwa "2.0 TDI".
+  name String
+  /// Motorcode, etwa "N47D20". Das eindeutige Merkmal fuer Werkstatt und Teile.
+  ///
+  /// Jeder technisch unterschiedliche Motorcode ist ein eigener Datensatz.
+  /// "2.0 TDI" ist ein Handelsname und beschreibt ein Dutzend verschiedener
+  /// Motoren; "2.0 TDI EA288 -- DBKA" beschreibt genau einen.
+  code String?
+
+  engineFamilyId String?
+  engineFamily   EngineFamily? @relation(fields: [engineFamilyId], references: [id], onDelete: SetNull)
+
+  /// Leistungsstufe innerhalb der Familie, etwa "110 kW" oder "Basis".
+  /// Derselbe Grundmotor lief in mehreren Stufen; die Stufe ist das, was ein
+  /// Kaeufer in den Papieren wiederfindet.
+  powerStage String?
+
+  displacementCcm Int?
+  cylinders       Int?
+  /// Zylinderanordnung, etwa "R4", "V6", "B6". Als Text, weil die
+  /// Bezeichnungen je Hersteller abweichen.
+  cylinderLayout  String?
+  fuelType        FuelType
+  aspiration      Aspiration @default(OTHER)
+
+  /// Aufladung im Klartext, etwa "Bi-Turbo, variable Turbinengeometrie".
+  chargingDetail  String?
+  /// Gemischbildung, etwa "Common Rail, 2000 bar" oder "Saugrohreinspritzung".
+  injectionSystem String?
+  /// Steuerzeiten und Ventiltrieb, etwa "DOHC, 16V, Kette".
+  valvetrain      String?
+
+  /// Abgasnorm, etwa "Euro 6b". Als Text und nicht als Aufzaehlung: die
+  /// Bezeichnungen sind zahlreich und aendern sich.
+  emissionStandard String?
+
+  /// Bauzeitraum des Motors. Kann weiter sein als jede einzelne Baureihe.
+  yearFrom Int?
+  yearTo   Int?
+
+  /// Nennleistung in Kilowatt. kW ist die gesetzliche Einheit; PS wird daraus
+  /// berechnet und nicht zusaetzlich gespeichert -- zwei Speicherorte fuer
+  /// dieselbe Groesse laufen irgendwann auseinander.
+  powerKw  Int?
+  torqueNm Int?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  powertrains PowertrainCombination[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Ein Motorcode kommt je Hersteller genau einmal vor.
+  @@unique([manufacturerId, code])
+  @@index([engineFamilyId])
+  @@index([code])
+  @@index([status, fuelType])
+}
+
+model Transmission {
+  id String @id @default(cuid())
+
+  /// Handelsname, etwa "ZF 8HP" oder "S tronic".
+  name  String
+  type  TransmissionType
+  /// Anzahl Gaenge. Bei Elektroantrieben meist 1.
+  gears Int?
+
+  powertrains PowertrainCombination[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([name, type, gears])
+}
+
+/// Antriebskombination: Generation + Motor + Getriebe + Antriebsart.
+///
+/// Hier stehen die Fahrleistungen, weil sie genau von dieser Kombination
+/// abhaengen und nicht vom Motor allein.
+model PowertrainCombination {
+  id String @id @default(cuid())
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  engineId String
+  engine   Engine @relation(fields: [engineId], references: [id], onDelete: Restrict)
+
+  transmissionId String
+  transmission   Transmission @relation(fields: [transmissionId], references: [id], onDelete: Restrict)
+
+  driveType DriveType
+
+  /// Auf welche Facelift-Phase sich die Angaben beziehen. Leistung und
+  /// Abgasnorm derselben Motorkennung aendern sich am Facelift regelmaessig --
+  /// eine pauschale Zuordnung ueber die ganze Generation waere falsch.
+  faceliftPhaseId String?
+  faceliftPhase   FaceliftPhase? @relation(fields: [faceliftPhaseId], references: [id], onDelete: SetNull)
+
+  /// Angebotszeitraum dieser Kombination. Kann enger sein als die Generation.
+  yearFrom Int?
+  yearTo   Int?
+
+  /// Modelljahre, in denen es diese Kombination gab. Nicht dasselbe wie das
+  /// Baujahr oben.
+  modelYearFrom Int?
+  modelYearTo   Int?
+
+  /// Markt, fuer den die Angaben gelten, etwa "DE" oder "EU". Leer heisst:
+  /// nicht auf einen Markt eingegrenzt -- nicht "gilt weltweit".
+  marketRegion String?
+
+  /// Leistung dieser Kombination. Weicht gelegentlich vom Motorwert ab.
+  powerKw  Int?
+  torqueNm Int?
+
+  /// Sekunden von 0 auf 100 km/h, eine Nachkommastelle.
+  acceleration0to100 Decimal? @db.Decimal(4, 1)
+  topSpeedKmh        Int?
+
+  /// Verbrauch in l/100 km bzw. kWh/100 km, immer mit Messzyklus.
+  /// Ohne den Zyklus waere der Wert nicht vergleichbar.
+  consumptionCombined  Decimal?            @db.Decimal(5, 2)
+  consumptionUnit      String?
+  co2CombinedGramPerKm Int?
+  measurementStandard  MeasurementStandard @default(UNKNOWN)
+
+  /// Leergewicht nach EG in Kilogramm.
+  kerbWeightKg       Int?
+  /// Nutzbarer Energieinhalt in kWh, nur bei Elektro und Plug-in.
+  batteryCapacityKwh Decimal? @db.Decimal(5, 1)
+  /// Tankinhalt in Litern.
+  fuelTankLitres     Int?
+
+  /// Elektrische Reichweite in Kilometern. Nur bei Elektro und Plug-in.
+  electricRangeKm Int?
+
+  /// Abgasnorm, etwa "Euro 6d-TEMP". Als Text und nicht als Aufzaehlung:
+  /// die Bezeichnungen sind zahlreich, uneinheitlich und aendern sich.
+  /// Sie bestimmt in vielen Staedten die Einfahrterlaubnis.
+  emissionStandard String?
+
+  /// Sitzplaetze und Tueren. Fuer den Alltag oft wichtiger als die Leistung.
+  seats Int?
+  doors Int?
+
+  /// Zuladung in Kilogramm.
+  payloadKg Int?
+
+  /// Anhaengelast in Kilogramm, gebremst und ungebremst.
+  /// Zwei Felder, weil die Werte weit auseinanderliegen und eine Verwechslung
+  /// im Betrieb gefaehrlich ist.
+  towingCapacityBrakedKg   Int?
+  towingCapacityUnbrakedKg Int?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  knownIssues      KnownIssue[]
+  maintenanceItems MaintenanceItem[]
+  costEstimates    CostEstimate[]
+  knowledgeNotes   KnowledgeNote[]
+  optionOffers     OptionAvailability[]
+  hsnTsnEntries    HsnTsnEntry[]
+  userVehicles     UserVehicle[]
+  images           CatalogImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Dieselbe Kombination darf nur einmal existieren.
+  @@unique([generationId, engineId, transmissionId, driveType])
+  @@index([engineId])
+  /**
+   * Indizes fuer die Suche (Phase 4). Gesucht wird auf dieser Ebene, und
+   * jede Abfrage filtert zuerst auf status -- deshalb steht status jeweils
+   * vorn. Ohne diese Indizes laeuft jede Sortierung auf einen vollstaendigen
+   * Tabellendurchlauf hinaus.
+   */
+  @@index([status, powerKw])
+  @@index([status, yearFrom])
+  @@index([status, consumptionCombined])
+  @@index([status, acceleration0to100])
+  @@index([status, driveType])
+}
+
+/// Ausstattungslinie, etwa "M Sport" oder "S line".
+model TrimLine {
+  id String @id @default(cuid())
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  name String
+  slug String
+
+  description String?
+
+  yearFrom Int?
+  yearTo   Int?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  optionOffers OptionAvailability[]
+  wheelOffers  WheelOptionAvailability[]
+  images       CatalogImage[]
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([generationId, slug])
+}
+
+/// Wie haeufig eine Ausstattung tatsaechlich bestellt wurde.
+/// Immer eine Einschaetzung oder Marktbeobachtung, nie eine Spezifikation --
+/// Bestellquoten stehen in keinem Datenblatt.
+enum Rarity {
+  COMMON
+  UNCOMMON
+  RARE
+  VERY_RARE
+}
+
+/// Wie sehr eine Ausstattung beim Kauf bzw. beim Wiederverkauf ins Gewicht faellt.
+enum Relevance {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+/// Sonderausstattung im Sinne eines Katalogs je Hersteller.
+///
+/// Am Hersteller und nicht an der Generation, weil dieselbe Ausstattung ueber
+/// viele Baureihen laeuft. Wo sie tatsaechlich zu haben war, steht in
+/// OptionAvailability.
+model OptionalEquipment {
+  id String @id @default(cuid())
+
+  manufacturerId String
+  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Restrict)
+
+  name       String
+  slug       String
+  /// Bestellnummer des Herstellers, etwa "S610A". Das sicherste Merkmal.
+  optionCode String?
+
+  /// Grobe Einordnung, etwa "Licht", "Sicherheit", "Komfort".
+  category String?
+  /// Bereich am Fahrzeug: Aussen, Innen, Infotainment, Sound, Assistenz.
+  /// Wertebereich siehe core/catalog/equipment-areas.ts.
+  area     String?
+
+  /// Was ist es, was kann es -- in verstaendlicher Sprache.
+  description   String?
+  /// Woran erkennt man es am Fahrzeug? Beim Gebrauchtkauf die wichtigste Frage.
+  howToIdentify String?
+
+  /// Seltenheit und Bedeutung. Diese drei Angaben sind IMMER Einschaetzungen
+  /// oder Marktbeobachtungen: Bestellquoten und Wiederverkaufswirkung stehen
+  /// in keinem Datenblatt. Deshalb tragen sie ein eigenes Belegmodell.
+  rarity            Rarity?
+  purchaseRelevance Relevance?
+  resaleRelevance   Relevance?
+
+  relevanceEvidenceType EvidenceType?
+  relevanceConfidence   ConfidenceLevel @default(MEDIUM)
+  /// Begruendung bzw. Datengrundlage der drei Angaben darueber.
+  relevanceReasoning    String?
+  relevanceDataBasis    String?
+  relevanceObservedAt   DateTime?
+  relevanceSampleSize   Int?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  availability   OptionAvailability[]
+  packageEntries EquipmentPackageItem[]
+  editionEntries SpecialEditionItem[]
+  ownedBy        UserVehicleEquipment[]
+  images         CatalogImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([manufacturerId, slug])
+  @@index([category])
+  @@index([area])
+  @@index([optionCode])
+}
+
+/// Verfuegbarkeit einer Sonderausstattung: wo, wann, serienmaessig oder gegen
+/// Aufpreis.
+model OptionAvailability {
+  id String @id @default(cuid())
+
+  optionId String
+  option   OptionalEquipment @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  /// Wenn gesetzt, gilt die Angabe nur fuer diese Ausstattungslinie.
+  trimLineId String?
+  trimLine   TrimLine? @relation(fields: [trimLineId], references: [id], onDelete: Cascade)
+
+  /// Wenn gesetzt, gilt die Angabe nur fuer diese Antriebskombination.
+  /// Manche Ausstattung gab es nur zum grossen Motor -- oder gerade nicht.
+  powertrainId String?
+  powertrain   PowertrainCombination? @relation(fields: [powertrainId], references: [id], onDelete: Cascade)
+
+  /// Wenn gesetzt: ueber dieses Paket zu bekommen.
+  packageId String?
+  package   EquipmentPackage? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+
+  /// Wenn gesetzt: an dieses Sondermodell gebunden.
+  specialEditionId String?
+  specialEdition   SpecialEdition? @relation(fields: [specialEditionId], references: [id], onDelete: SetNull)
+
+  /// Wenn gesetzt: gilt erst bzw. nur ab dieser Facelift-Phase. Ausstattung
+  /// wechselt am Facelift haeufiger als zwischen Generationen.
+  faceliftPhaseId String?
+  faceliftPhase   FaceliftPhase? @relation(fields: [faceliftPhaseId], references: [id], onDelete: SetNull)
+
+  /// In welcher Form es die Ausstattung hier gab.
+  ///
+  /// Ersetzt das fruehere Feld `standard`. Ein Wahrheitswert kannte nur
+  /// "Serie" und "nicht Serie" und warf damit Aufpreisausstattung, reine
+  /// Paketbestandteile, Sondermodell-Ausstattung und marktabhaengige
+  /// Ausstattung in einen Topf -- genau die Unterscheidung, auf die es beim
+  /// Gebrauchtkauf ankommt.
+  kind AvailabilityKind @default(OPTIONAL)
+
+  yearFrom Int?
+  yearTo   Int?
+
+  modelYearFrom Int?
+  modelYearTo   Int?
+
+  /// Markt, fuer den diese Angabe gilt. Pflicht bei kind = MARKET_SPECIFIC,
+  /// erzwungen in der Domaenenschicht.
+  marketRegion String?
+
+  /// Historischer Listenaufpreis in Cent, wenn belegt.
+  surchargeCents    Int?
+  surchargeCurrency String?   @default("EUR")
+  surchargeAsOf     DateTime?
+
+  note String?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /**
+   * ACHTUNG -- diese Bedingung greift nur teilweise: PostgreSQL behandelt
+   * NULL-Werte als voneinander verschieden. Zwei Zeilen mit derselben Option,
+   * derselben Generation und ueberall sonst NULL verletzen sie also NICHT.
+   * Der vollstaendige Schutz gegen Duplikate steht deshalb zusaetzlich in der
+   * Anwendung (assertKeineDoppelteVerfuegbarkeit in catalog-write.ts).
+   */
+  @@unique([optionId, generationId, trimLineId, powertrainId])
+  @@index([generationId])
+  @@index([optionId])
+  @@index([generationId, kind])
+  @@index([specialEditionId])
+}
+
+/// Ausstattungspaket: buendelt mehrere Sonderausstattungen.
+model EquipmentPackage {
+  id String @id @default(cuid())
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  name        String
+  slug        String
+  packageCode String?
+  description String?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  items        EquipmentPackageItem[]
+  availability OptionAvailability[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([generationId, slug])
+}
+
+model EquipmentPackageItem {
+  id String @id @default(cuid())
+
+  packageId String
+  package   EquipmentPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  optionId String
+  option   OptionalEquipment @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  /// Manche Pakete enthalten Teile nur wahlweise.
+  optional Boolean @default(false)
+
+  @@unique([packageId, optionId])
+}
+
+// ---------------------------------------------------------------------------
+// Fahrzeug-Wissensdatenbank (Phase 3)
+//
+// Der Katalog aus Phase 2 sagt, WAS ein Fahrzeug ist. Diese Tabellen sagen,
+// WIE es sich im Leben schlaegt: Schwachstellen, Wartung, Kosten, Alltag.
+//
+// Der Unterschied ist heikel. Technische Daten stehen in Unterlagen.
+// "Der Motor gilt als haltbar" steht nirgends -- das ist eine Einschaetzung.
+// Beides gleich darzustellen waere die schlimmste Form von erfundenen Daten:
+// eine, die wie ein Datenblatt aussieht.
+//
+// Deshalb traegt jede Wissensaussage ihr BELEGMODELL:
+//
+//   SPECIFICATION  Nachpruefbare Angabe aus einer Unterlage. Braucht eine
+//                  belastbare Quelle. Wird als Tatsache dargestellt.
+//   ASSESSMENT     Redaktionelle Einschaetzung. Braucht eine Begruendung und
+//                  wird als Einschaetzung gekennzeichnet -- nie als Tatsache.
+//   MARKET_SIGNAL  Aus Marktbeobachtung abgeleitet. Braucht Datengrundlage,
+//                  Stichtag und moeglichst Stichprobengroesse; wird mit
+//                  ausgewiesener Guete dargestellt.
+// ---------------------------------------------------------------------------
+
+enum EvidenceType {
+  SPECIFICATION
+  ASSESSMENT
+  MARKET_SIGNAL
+}
+
+/// Wie belastbar eine Aussage ist. Wird dem Leser angezeigt, nicht verschwiegen.
+enum ConfidenceLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum IssueSeverity {
+  /// Kann liegenbleiben oder teuer werden.
+  CRITICAL
+  /// Aergerlich und kostenpflichtig, aber beherrschbar.
+  SIGNIFICANT
+  /// Bekannt, meist guenstig zu beheben.
+  MINOR
+}
+
+/// Wovon eine Wissensaussage handelt.
+/// Entweder von einer ganzen Generation oder von einer Antriebskombination --
+/// "der Diesel rostet" und "die Baureihe rostet" sind verschiedene Aussagen.
+model KnownIssue {
+  id String @id @default(cuid())
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  /// Wenn gesetzt, betrifft die Schwachstelle nur diese Antriebskombination.
+  powertrainId String?
+  powertrain   PowertrainCombination? @relation(fields: [powertrainId], references: [id], onDelete: Cascade)
+
+  title     String
+  /// Betroffene Baugruppe, etwa "Steuerkette" oder "Hinterachse".
+  component String?
+  severity  IssueSeverity
+
+  /// Woran es sich bemerkbar macht -- in der Sprache der Betroffenen.
+  symptoms String?
+  /// Was dagegen hilft.
+  remedy   String?
+
+  /// Ab welcher Laufleistung typischerweise. Als Bereich, nicht als Punkt.
+  typicalMileageFromKm Int?
+  typicalMileageToKm   Int?
+
+  /// Betroffener Bauzeitraum, falls enger als die Generation.
+  yearFrom Int?
+  yearTo   Int?
+
+  /// Ab welchem Baujahr der Hersteller die Ursache behoben hat.
+  ///
+  /// Ausdruecklich eine eigene Angabe und nicht aus `yearTo` abgeleitet:
+  /// `yearTo` sagt, in welchen Jahren die Schwachstelle auftrat -- das kann
+  /// auch daran liegen, dass das Modell auslief oder der Motor wechselte.
+  /// "Behoben ab" ist eine andere Aussage, und es ist die, nach der ein
+  /// Gebrauchtwagenkaeufer sucht: Ist meins das reparierte?
+  resolvedFromYear      Int?
+  /// Woran die behobene Ausfuehrung zu erkennen ist -- Teilenummer,
+  /// Aenderungsindex, sichtbares Merkmal.
+  resolvedHowToIdentify String?
+
+  evidenceType EvidenceType
+  confidence   ConfidenceLevel @default(MEDIUM)
+  /// Pflicht bei ASSESSMENT: Worauf stuetzt sich die Einschaetzung?
+  reasoning    String?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([generationId, status])
+  @@index([powertrainId])
+}
+
+model MaintenanceItem {
+  id String @id @default(cuid())
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  powertrainId String?
+  powertrain   PowertrainCombination? @relation(fields: [powertrainId], references: [id], onDelete: Cascade)
+
+  /// Was zu tun ist, etwa "Zahnriemen wechseln".
+  task           String
+  /// Intervall in Kilometern und/oder Monaten. Beides kann fehlen.
+  intervalKm     Int?
+  intervalMonths Int?
+
+  /// Warum es wichtig ist -- fuer Leser ohne Werkstatterfahrung.
+  note String?
+
+  evidenceType EvidenceType
+  confidence   ConfidenceLevel @default(MEDIUM)
+  reasoning    String?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([generationId, status])
+}
+
+enum CostCategory {
+  INSURANCE
+  VEHICLE_TAX
+  SERVICE
+  TYPICAL_REPAIR
+  FUEL
+  DEPRECIATION
+  OTHER
+}
+
+/// Kostenangabe als Spanne.
+///
+/// Bewusst kein Einzelwert: Ein Punktwert taeuscht eine Genauigkeit vor, die
+/// es bei Betriebskosten nicht gibt. Zusaetzlich wird festgehalten, worauf
+/// sich die Angabe stuetzt und fuer welchen Geltungsbereich sie gilt.
+model CostEstimate {
+  id String @id @default(cuid())
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  powertrainId String?
+  powertrain   PowertrainCombination? @relation(fields: [powertrainId], references: [id], onDelete: Cascade)
+
+  category CostCategory
+  label    String
+
+  /// Betraege in Cent, niemals als Fliesskommazahl.
+  amountFromCents Int?
+  amountToCents   Int?
+  currency        String  @default("EUR")
+  /// Bezugsgroesse, etwa "pro Jahr" oder "je Vorgang".
+  per             String?
+
+  /// Geltungsbereich, etwa "Deutschland". Steuern und Versicherung sind
+  /// ohne Land bedeutungslos.
+  region String?
+
+  evidenceType EvidenceType
+  confidence   ConfidenceLevel @default(MEDIUM)
+  reasoning    String?
+  /// Pflicht bei MARKET_SIGNAL: Worauf beruht die Beobachtung?
+  dataBasis    String?
+  /// Stichtag der Beobachtung. Kostenangaben altern.
+  observedAt   DateTime?
+  /// Anzahl der Beobachtungen, falls bekannt.
+  sampleSize   Int?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([generationId, status])
+  @@index([category])
+}
+
+/// Worum es in einer Wissensnotiz geht.
+enum KnowledgeTopic {
+  RELIABILITY
+  EVERYDAY_USE
+  LONG_DISTANCE
+  CITY_USE
+  TOWING
+  TUNING_POTENTIAL
+  RESALE_VALUE
+  DEMAND
+  ADVANTAGE
+  DISADVANTAGE
+  BUYING_ADVICE
+}
+
+/// Fliesstext zu einem Thema, in verstaendlicher Sprache.
+model KnowledgeNote {
+  id String @id @default(cuid())
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  powertrainId String?
+  powertrain   PowertrainCombination? @relation(fields: [powertrainId], references: [id], onDelete: Cascade)
+
+  topic   KnowledgeTopic
+  heading String
+  /// Der Text selbst. Wird ausschliesslich als Text dargestellt, nie als HTML.
+  body    String
+
+  evidenceType EvidenceType
+  confidence   ConfidenceLevel @default(MEDIUM)
+  reasoning    String?
+  dataBasis    String?
+  observedAt   DateTime?
+  sampleSize   Int?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([generationId, status])
+  @@index([topic])
+}
+
+// ---------------------------------------------------------------------------
+// Token-Guthaben (Phase 11a, vorgezogen)
+//
+// Vorgezogen aus Phase 11, weil der MASTERPLAN in Phase 7 verlangt: "keine
+// KI-Ausfuehrung ohne ausreichendes Guthaben". Ohne Guthabensystem waere
+// diese Regel dort nicht umsetzbar -- man haette sie nachtraeglich in jeden
+// KI-Aufruf einziehen muessen.
+//
+// KERNGEDANKE: Reservieren, dann ausfuehren, dann buchen.
+//
+// Ein KI-Aufruf dauert Sekunden und kann scheitern. Wer erst danach bucht,
+// verschenkt Leistung an Abbrecher. Wer vorher bucht, nimmt Geld fuer einen
+// Aufruf, der nie ankam. Deshalb: Betrag reservieren, Aufruf ausfuehren, bei
+// Erfolg buchen, bei Misserfolg freigeben.
+// ---------------------------------------------------------------------------
+
+enum TokenTransactionType {
+  /// Guthabenkauf.
+  PURCHASE
+  /// Verbrauch durch eine kostenpflichtige Funktion.
+  USAGE
+  /// Rueckerstattung eines Verbrauchs.
+  REFUND
+  /// Gutschrift durch die Administration.
+  ADMIN_CREDIT
+  /// Abbuchung durch die Administration.
+  ADMIN_DEBIT
+  /// Korrektur, etwa nach einem Fehler im Betrieb.
+  ADJUSTMENT
+}
+
+enum TokenHoldStatus {
+  /// Reserviert, Ausgang offen.
+  OPEN
+  /// Aufruf erfolgreich, Betrag gebucht.
+  CAPTURED
+  /// Aufruf gescheitert oder abgebrochen, Betrag wieder frei.
+  RELEASED
+  /// Reservierung ist verfallen und wurde vom Worker aufgeraeumt.
+  EXPIRED
+}
+
+model Wallet {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Verfuegbares Guthaben in Tokens. Ganzzahlig -- Bruchteile eines Tokens
+  /// gibt es nicht, und Fliesskommazahlen haben bei Guthaben nichts zu suchen.
+  /// Darf nie negativ werden; erzwungen durch eine Pruefbedingung.
+  balanceTokens Int @default(0)
+
+  /// Davon reserviert, also fuer laufende Vorgaenge blockiert.
+  /// Verfuegbar ist balanceTokens minus reservedTokens.
+  reservedTokens Int @default(0)
+
+  transactions TokenTransaction[]
+  holds        TokenHold[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TokenTransaction {
+  id String @id @default(cuid())
+
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  type TokenTransactionType
+
+  /// Vorzeichenbehaftet: positiv gutgeschrieben, negativ verbraucht.
+  amountTokens Int
+  /// Guthabenstand nach dieser Buchung. Macht die Historie ohne Nachrechnen
+  /// lesbar und deckt Unstimmigkeiten auf.
+  balanceAfter Int
+
+  /// Eindeutige Kennung des ausloesenden Vorgangs.
+  ///
+  /// Verhindert Doppelbuchungen: Wird derselbe Vorgang zweimal gemeldet --
+  /// etwa durch einen wiederholten Webhook oder einen Doppelklick -- scheitert
+  /// die zweite Buchung an dieser Bedingung statt das Guthaben ein zweites
+  /// Mal zu belasten.
+  reference String @unique
+
+  /// Wofuer, in Klartext fuer die Historie.
+  purpose String
+
+  /// Wer die Buchung ausgeloest hat. Null bei systemseitigen Vorgaengen.
+  actorId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([walletId, createdAt])
+  @@index([type])
+}
+
+model TokenHold {
+  id String @id @default(cuid())
+
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  amountTokens Int
+  status       TokenHoldStatus @default(OPEN)
+
+  purpose String
+
+  /// Eindeutig, damit derselbe Vorgang nicht zweimal reserviert.
+  reference String @unique
+
+  /// Eine Reservierung ohne Ablauf blockiert Guthaben fuer immer, wenn der
+  /// Aufruf haengenbleibt. Der Worker gibt abgelaufene Reservierungen frei.
+  expiresAt DateTime
+
+  settledAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([status, expiresAt])
+  @@index([walletId])
+}
+
+// ---------------------------------------------------------------------------
+// Verkaufsassistent (Phase 7)
+//
+// Der Entwurf einer Verkaufsanzeige. Er entsteht in Schritten:
+// VIN eingeben -> Katalogzuordnung bestaetigen -> Angaben ergaenzen ->
+// Text erzeugen. Erst danach wird daraus in Phase 9 eine Anzeige.
+//
+// DATENSPARSAMKEIT: Die VIN ist ein personenbeziehbares Merkmal -- ueber sie
+// laesst sich ein Fahrzeug und damit oft eine Person identifizieren. Sie wird
+// deshalb ausschliesslich am Entwurf der verkaufenden Person gespeichert,
+// nie oeffentlich ausgeliefert, nie an die KI uebergeben und im Log nur als
+// Hash gefuehrt.
+// ---------------------------------------------------------------------------
+
+enum ListingDraftStatus {
+  /// VIN erfasst, Vorschlaege liegen vor.
+  VIN_ENTERED
+  /// Fahrzeugzuordnung durch die verkaufende Person bestaetigt.
+  VEHICLE_CONFIRMED
+  /// Angaben zum konkreten Fahrzeug ergaenzt.
+  DETAILS_PROVIDED
+  /// Text erzeugt.
+  TEXT_GENERATED
+  /// In eine Anzeige ueberfuehrt (Phase 9).
+  PUBLISHED
+  ABANDONED
+}
+
+enum VehicleCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+}
+
+enum ServiceHistoryKind {
+  FULL_MANUFACTURER
+  FULL_INDEPENDENT
+  PARTIAL
+  NONE
+  UNKNOWN
+}
+
+model ListingDraft {
+  id String @id @default(cuid())
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  status ListingDraftStatus @default(VIN_ENTERED)
+
+  /// Klartext-VIN. Nur fuer die verkaufende Person und die Administration
+  /// sichtbar, nie in einer oeffentlichen Antwort, nie im KI-Kontext.
+  vin String?
+
+  /// HMAC der VIN. Erlaubt Duplikaterkennung und Protokollierung, ohne die
+  /// Nummer im Klartext zu fuehren.
+  vinHash String?
+
+  // --- Katalogzuordnung, ausschliesslich bestaetigt --------------------------
+  manufacturerId String?
+  modelId        String?
+  generationId   String?
+  powertrainId   String?
+  trimLineId     String?
+
+  /// Zeitpunkt der Bestaetigung. Ohne ihn gilt die Zuordnung als Vorschlag.
+  catalogConfirmedAt DateTime?
+
+  // --- Angaben der verkaufenden Person -------------------------------------
+  mileageKm         Int?
+  firstRegistration DateTime?
+  previousOwners    Int?
+  /// Hauptuntersuchung gueltig bis.
+  huValidUntil      DateTime?
+  serviceHistory    ServiceHistoryKind?
+  condition         VehicleCondition?
+  tyreCondition     String?
+  damages           String?
+  hadAccident       Boolean?
+  accidentDetails   String?
+  additionalNotes   String?
+
+  // --- Erzeugte Texte -------------------------------------------------------
+  generatedTitle          String?
+  generatedShortText      String?
+  generatedLongText       String?
+  generatedClassifiedText String?
+  generatedAt             DateTime?
+  /// Welches Modell den Text erzeugt hat. Macht spaetere Unterschiede in der
+  /// Textqualitaet nachvollziehbar.
+  generationModel         String?
+
+  // --- Bewertung ------------------------------------------------------------
+  /// Die letzte Bewertung, vollstaendig. Sie wird gespeichert, weil sie
+  /// Guthaben gekostet hat: Wer dafuer bezahlt hat, muss sie wiedersehen
+  /// koennen, ohne erneut zu zahlen.
+  valuationJson          Json?
+  valuedAt               DateTime?
+  /// Mit welchen Annahmen gerechnet wurde. Ohne diese Kennung liesse sich
+  /// eine alte Bewertung spaeter nicht mehr einordnen.
+  valuationAssumptionsId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId, status])
+  @@index([vinHash])
+}
+
+// ===========================================================================
+// Marktplatz (Phase 9)
+// ===========================================================================
+
+enum ListingStatus {
+  /// Angelegt, noch nicht oeffentlich.
+  DRAFT
+  /// Oeffentlich sichtbar.
+  ACTIVE
+  /// Vom Verkaeufer angehalten. Nicht sichtbar, aber jederzeit reaktivierbar.
+  PAUSED
+  /// Fahrzeug ist verkauft. Bleibt als Beleg erhalten, nicht mehr sichtbar.
+  SOLD
+  /// Laufzeit abgelaufen.
+  EXPIRED
+  /// Vom Verkaeufer geloescht. Zeile bleibt, damit Nachrichten und
+  /// Protokolle nicht ins Leere zeigen.
+  DELETED
+}
+
+/// Eine Fahrzeuganzeige.
+///
+/// Bewusst eine eigene Tabelle und keine Sicht auf den Entwurf: Eine
+/// veroeffentlichte Anzeige ist ein Angebot. Sie darf sich nicht aendern,
+/// nur weil jemand am Entwurf weiterarbeitet. Beim Veroeffentlichen wird
+/// deshalb kopiert, nicht verwiesen.
+model Listing {
+  id String @id @default(cuid())
+
+  sellerId String
+  seller   User   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  /// Haendleranzeige. Gesetzt, wenn im Namen eines Haendlers inseriert wird.
+  dealerId String?
+  dealer   Dealer? @relation(fields: [dealerId], references: [id], onDelete: SetNull)
+
+  /// Aus welchem Entwurf die Anzeige entstanden ist. Nur zur Nachvollzieh-
+  /// barkeit -- die Anzeige liest von hier NICHTS nach.
+  draftId String?
+
+  status ListingStatus @default(DRAFT)
+
+  // --- Fahrzeug, aus dem bestaetigten Katalog kopiert ----------------------
+  manufacturerId String?
+  modelId        String?
+  generationId   String?
+  powertrainId   String?
+  trimLineId     String?
+
+  /// Anzeigebezeichnung des Fahrzeugs zum Zeitpunkt der Veroeffentlichung.
+  /// Sie steht hier, damit eine alte Anzeige lesbar bleibt, auch wenn der
+  /// Katalogeintrag spaeter umbenannt wird.
+  vehicleLabel String
+
+  // --- Angaben -------------------------------------------------------------
+  title       String
+  description String
+
+  /// Preis in Cent. Cent, weil Gleitkommazahlen bei Geld luegen.
+  priceCents Int
+  /// Ob der Preis Verhandlungsbasis ist.
+  negotiable Boolean @default(false)
+
+  mileageKm         Int?
+  firstRegistration DateTime?
+  previousOwners    Int?
+  huValidUntil      DateTime?
+  serviceHistory    ServiceHistoryKind?
+  condition         VehicleCondition?
+  damages           String?
+  hadAccident       Boolean?
+  accidentDetails   String?
+
+  /// Standort. Nur Postleitzahl und Ort -- eine Hausnummer gehoert nicht in
+  /// eine oeffentliche Anzeige.
+  postalCode String?
+  city       String?
+
+  /// Adresszeile fuer die URL. Eindeutig, damit sich Anzeigen verlinken
+  /// lassen, ohne die Kennung zu zeigen.
+  slug String @unique
+
+  publishedAt DateTime?
+  /// Ende der Laufzeit. Danach gilt die Anzeige als EXPIRED.
+  expiresAt   DateTime?
+  soldAt      DateTime?
+  deletedAt   DateTime?
+
+  viewCount Int @default(0)
+
+  images        ListingImage[]
+  favorites     ListingFavorite[]
+  conversations Conversation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([sellerId, status])
+  @@index([dealerId, status])
+  @@index([generationId, status])
+  @@index([status, priceCents])
+}
+
+/// Ein Bild einer Anzeige.
+///
+/// Gespeichert wird ausschliesslich neu kodiertes Material: Was hochgeladen
+/// wird, wird dekodiert und neu geschrieben. Damit verschwinden EXIF-Daten
+/// (bei Fahrzeugbildern regelmaessig der Aufnahmeort, oft die Wohnadresse)
+/// und alles, was sich sonst in einer Bilddatei verstecken laesst.
+model ListingImage {
+  id String @id @default(cuid())
+
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  /// Schluessel im Ablagesystem. Kein Dateiname der hochladenden Person --
+  /// der koennte Pfadanteile enthalten.
+  storageKey String @unique
+
+  /// Reihenfolge in der Anzeige. Das erste Bild ist das Vorschaubild.
+  position Int
+
+  width       Int
+  height      Int
+  byteSize    Int
+  contentType String
+
+  /// Bildbeschreibung fuer Screenreader.
+  altText String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([listingId, position])
+  @@index([listingId])
+}
+
+/// Merkliste.
+model ListingFavorite {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+  @@index([userId, createdAt])
+}
+
+// ===========================================================================
+// Rechnungen und Zahlungen (Phase 11)
+// ===========================================================================
+
+enum PaymentState {
+  PENDING
+  AUTHORIZED
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum InvoiceStatus {
+  /// Erstellt, aber noch nicht bezahlt.
+  OPEN
+  PAID
+  /// Storniert. Eine Rechnung wird NICHT geloescht -- die Nummernfolge
+  /// duerfte sonst Luecken bekommen.
+  CANCELLED
+}
+
+/// Ein Zahlungsvorgang.
+///
+/// Er entsteht, bevor die zahlende Person zum Anbieter geschickt wird, und
+/// traegt unsere eigene Vorgangskennung. Ohne sie liesse sich eine
+/// Rueckmeldung des Anbieters keinem Kauf zuordnen -- und eine doppelte
+/// Rueckmeldung nicht als solche erkennen.
+model PaymentIntent {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Eigene Vorgangskennung. Geht an den Anbieter und kommt zurueck.
+  reference String @unique
+
+  /// Kennung beim Anbieter. Erst nach dem Anlegen der Sitzung bekannt.
+  providerReference String?
+  /// Bezeichnung des Anbieters, damit spaeter nachvollziehbar bleibt,
+  /// worueber gezahlt wurde.
+  providerLabel     String
+
+  tokens           Int
+  amountGrossCents Int
+  currency         String @default("EUR")
+
+  state PaymentState @default(PENDING)
+
+  paidAmountCents Int?
+  paidAt          DateTime?
+
+  invoice Invoice?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, state])
+  @@index([providerReference])
+}
+
+/// Eine Rechnung.
+///
+/// Die Betraege stehen als ganze Cent und werden mit der Rechnung
+/// eingefroren: Ein spaeter geaenderter Steuersatz oder Preis darf eine alte
+/// Rechnung nicht umschreiben.
+model Invoice {
+  /// Die Rechnungsnummer IST der Schluessel. Eine zusaetzliche technische
+  /// Kennung waere eine zweite Wahrheit ueber dieselbe Rechnung.
+  number String @id
+  year   Int
+  serial Int
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  paymentIntentId String?        @unique
+  paymentIntent   PaymentIntent? @relation(fields: [paymentIntentId], references: [id], onDelete: SetNull)
+
+  status InvoiceStatus @default(OPEN)
+
+  /// Rechnungsanschrift zum Zeitpunkt der Erstellung -- kopiert, nicht
+  /// verwiesen. Eine spaeter geaenderte Anschrift darf eine ausgestellte
+  /// Rechnung nicht veraendern.
+  billingName       String
+  billingEmail      String
+  billingStreet     String?
+  billingPostalCode String?
+  billingCity       String?
+  billingVatId      String?
+
+  netCents           Int
+  taxCents           Int
+  grossCents         Int
+  /// Steuersatz in Basispunkten: 1900 = 19,00 %.
+  taxRateBasisPoints Int
+  /// Hinweis zur Besteuerung, sofern einer noetig ist.
+  taxNote            String?
+
+  /// Zahlungsstand und -referenz, wie im Plan verlangt.
+  paymentState     PaymentState?
+  paymentReference String?
+
+  issuedAt           DateTime  @default(now())
+  paidAt             DateTime?
+  cancelledAt        DateTime?
+  /// Warum storniert wurde. Pflicht beim Stornieren.
+  cancellationReason String?
+
+  items InvoiceItem[]
+
+  @@unique([year, serial])
+  @@index([userId, issuedAt])
+}
+
+model InvoiceItem {
+  id String @id @default(cuid())
+
+  invoiceNumber String
+  invoice       Invoice @relation(fields: [invoiceNumber], references: [number], onDelete: Cascade)
+
+  position     Int
+  description  String
+  quantity     Int
+  unitNetCents Int
+  lineNetCents Int
+
+  @@unique([invoiceNumber, position])
+}
+
+/// Zaehler fuer Rechnungsnummern.
+///
+/// Eine Zeile je Jahr. Der Zaehler wird in einer Transaktion mit einem
+/// bedingten UPDATE erhoeht -- ein Lesen-Rechnen-Schreiben vergaebe unter
+/// Last dieselbe Nummer zweimal, und doppelte Rechnungsnummern sind kein
+/// Schoenheitsfehler.
+model InvoiceSequence {
+  year       Int @id
+  lastSerial Int @default(0)
+
+  updatedAt DateTime @updatedAt
+}
+
+// ===========================================================================
+// Nachrichten (Phase 12) -- plattformintern, kein Matrix Synapse (Vorgabe C2)
+// ===========================================================================
+
+enum ConversationKind {
+  /// Zu einer Anzeige. Der Regelfall.
+  LISTING
+  /// An den Support der Plattform.
+  SUPPORT
+}
+
+enum ConversationState {
+  OPEN
+  /// Von einer Seite geschlossen. Lesbar, aber ohne neue Nachrichten.
+  CLOSED
+  /// Von der Moderation gesperrt.
+  BLOCKED
+}
+
+/// Ein Gespraech zwischen genau zwei Seiten.
+///
+/// Bewusst zwei feste Teilnehmer statt einer Teilnehmertabelle: Kaeufer und
+/// Verkaeufer, mehr braucht es hier nicht. Eine Gruppenfunktion, die niemand
+/// verlangt hat, waere zusaetzliche Angriffsflaeche bei der Rechtepruefung.
+model Conversation {
+  id String @id @default(cuid())
+
+  kind  ConversationKind  @default(LISTING)
+  state ConversationState @default(OPEN)
+
+  /// Fahrzeugbezug. Null bei Supportgespraechen.
+  listingId String?
+  listing   Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+
+  /// Bezeichnung des Fahrzeugs zum Zeitpunkt der Anfrage -- kopiert, damit
+  /// das Gespraech lesbar bleibt, wenn die Anzeige geloescht wird.
+  listingLabel String?
+
+  /// Wer angefragt hat.
+  initiatorId String
+  initiator   User   @relation("ConversationInitiator", fields: [initiatorId], references: [id], onDelete: Cascade)
+
+  /// Wer angefragt wurde.
+  recipientId String
+  recipient   User   @relation("ConversationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  /// Zeitpunkt der letzten Nachricht. Fuer die Sortierung der Liste, damit
+  /// dafuer nicht jedes Mal die Nachrichten durchsucht werden muessen.
+  lastMessageAt DateTime @default(now())
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Zu einer Anzeige gibt es je anfragender Person genau ein Gespraech.
+  /// Ohne diese Bedingung liesse sich dieselbe Anzeige beliebig oft
+  /// anschreiben und damit der Posteingang fluten.
+  @@unique([listingId, initiatorId])
+  @@index([initiatorId, lastMessageAt])
+  @@index([recipientId, lastMessageAt])
+  @@index([state])
+}
+
+model Message {
+  id String @id @default(cuid())
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  body String
+
+  /// Zeitpunkt, zu dem die GEGENSEITE gelesen hat. Null heisst ungelesen.
+  /// Ein Bool "gelesen" verlore die Information, wann.
+  readAt DateTime?
+
+  /// Von der Moderation entfernt. Der Text bleibt fuer die Moderation
+  /// erhalten, wird aber nicht mehr ausgeliefert.
+  hiddenAt     DateTime?
+  hiddenReason String?
+
+  createdAt DateTime @default(now())
+
+  attachments MessageAttachment[]
+
+  @@index([conversationId, createdAt])
+  @@index([senderId, createdAt])
+}
+
+/// Anhang einer Nachricht.
+///
+/// Ausschliesslich Bilder, und ausschliesslich neu kodierte: Was hochgeladen
+/// wird, wird dekodiert und als WebP neu geschrieben -- derselbe Weg wie bei
+/// Anzeigenbildern (ADR-008). Beliebige Dateien in einem Posteingang waeren
+/// ein Verteilweg fuer Schadsoftware; ein Bild, das erst dekodiert und dann
+/// neu geschrieben wird, traegt nichts mehr mit sich.
+model MessageAttachment {
+  id String @id @default(cuid())
+
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  storageKey  String @unique
+  width       Int
+  height      Int
+  byteSize    Int
+  contentType String
+
+  createdAt DateTime @default(now())
+
+  @@index([messageId])
+}
+
+/// Benachrichtigung an eine Person.
+///
+/// Eigene Tabelle statt "ungelesene Nachrichten zaehlen": Spaeter kommen
+/// Ereignisse dazu, die keine Nachricht sind -- eine ablaufende Anzeige, ein
+/// bestaetigter Kauf.
+model Notification {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Wertebereich siehe core/messaging/notifications.ts.
+  kind String
+
+  title String
+  body  String
+  /// Wohin die Benachrichtigung fuehrt. Immer plattformintern.
+  href  String?
+
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, readAt, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Datenbank-Ausbau: Motoren UND Ausstattungen verknuepft
+//
+// Der Katalog aus Phase 2 kannte die Kette Marke -> Modell -> Generation ->
+// Motor. Was fehlte, war alles, was einen Gebrauchtwagen tatsaechlich
+// unterscheidet: die Motorfamilie hinter dem Motorcode, das Modelljahr, die
+// Lackfarbe, die Felge, das Sondermodell -- und vor allem die Frage, ob eine
+// Ausstattung Serie war, Aufpreis kostete, nur im Paket kam oder es sie in
+// diesem Markt gar nicht gab.
+//
+// Diese Unterscheidung ist der Kern des Ausbaus. "Hatte das Panoramadach"
+// ist keine Auskunft; "war ab Werk nur im Paket Innenraum Plus zu haben,
+// 2014 bis 2017, nicht in den USA" ist eine.
+// ---------------------------------------------------------------------------
+
+/// Guete einer einzelnen Angabe.
+///
+/// Steht neben der Angabe, nicht in einer Fussnote. Vorgabe: Wer eine Zahl
+/// liest, soll ohne Nachfragen wissen, wie fest sie ist.
+enum DataQuality {
+  /// Bestaetigt. Jede tragende Angabe des Datensatzes ist durch eine
+  /// belastbare Quelle gedeckt.
+  VERIFIED
+  /// Teilweise bestaetigt. Ein Teil der Angaben ist belegt, ein Teil nicht.
+  /// Der haeufigste ehrliche Zustand -- und der, den die meisten Kataloge
+  /// verschweigen, indem sie alles gleich sicher aussehen lassen.
+  PARTIALLY_VERIFIED
+  /// Erfahrungswert. Aus der Praxis, nicht aus einer Unterlage. Nicht
+  /// nachpruefbar und wird auch nicht so dargestellt.
+  EXPERIENCE
+  /// Nicht geprueft. Uebernommen, aber gegen keine Quelle gehalten.
+  /// Die Voreinstellung: Wer nichts angibt, hat nichts belegt.
+  UNVERIFIED
+  /// Zur Pruefung. Etwas stimmt nicht -- widerspruechliche Quellen, ein
+  /// Befund der Qualitaetskontrolle, ein Zweifel aus der Redaktion.
+  NEEDS_REVIEW
+}
+
+/// In welcher Form eine Ausstattung zu bekommen war.
+///
+/// Der wichtigste Unterschied im ganzen Ausbau. Eine Ausstattung als
+/// serienmaessig auszuweisen, die es nur gegen Aufpreis gab, ist keine
+/// Ungenauigkeit -- es ist der Unterschied zwischen einem Fahrzeug, das ein
+/// Kaeufer sucht, und einem, das er ablehnt.
+enum AvailabilityKind {
+  /// Serie. Ohne Aufpreis, in jedem Fahrzeug dieser Auswahl enthalten.
+  STANDARD
+  /// Sonderausstattung. Einzeln bestellbar gegen Aufpreis.
+  OPTIONAL
+  /// Nur im Paket. Einzeln nicht bestellbar.
+  PACKAGE_ONLY
+  /// Nur im Sondermodell. Ausserhalb dieser Serie nicht zu haben.
+  SPECIAL_EDITION_ONLY
+  /// Marktabhaengig. In manchen Laendern Serie, in anderen nicht erhaeltlich.
+  MARKET_SPECIFIC
+}
+
+/// Art einer Lackierung. Bestimmt Aufpreis und Aufbereitungsaufwand.
+enum PaintKind {
+  UNI
+  METALLIC
+  PEARL_EFFECT
+  MATTE
+  /// Sonderlackierung ab Werk, etwa BMW Individual oder Audi exclusive.
+  SPECIAL_ORDER
+  OTHER
+}
+
+/// Woher ein Bild stammt. Die Reihenfolge ist die Rangfolge: Ein
+/// Herstellerbild schlaegt ein Pressebild, ein Pressebild ein Archivbild.
+///
+/// AI_GENERATED steht bewusst am Ende und ist der letzte Ausweg. Ein
+/// erzeugtes Bild zeigt kein Fahrzeug, das je gebaut wurde -- es zeigt, was
+/// ein Modell fuer wahrscheinlich haelt. Wo es verwendet wird, muss es als
+/// solches erkennbar sein, und Modell und Anweisung werden mitgespeichert,
+/// damit spaeter nachvollziehbar bleibt, wie das Bild entstanden ist.
+enum ImageOrigin {
+  MANUFACTURER
+  PRESS
+  WIKIMEDIA
+  ARCHIVE
+  OWN_PHOTO
+  AI_GENERATED
+}
+
+/// Was auf dem Bild zu sehen ist.
+enum ImageKind {
+  /// Fahrzeug von aussen.
+  VEHICLE_EXTERIOR
+  /// Innenraum.
+  VEHICLE_INTERIOR
+  /// Ausschnitt am Fahrzeug, etwa Front oder Heck.
+  VEHICLE_DETAIL
+  /// Einzelnes Ausstattungsteil: Felge, Scheinwerfer, Sitz, Display.
+  EQUIPMENT_PART
+  /// Lackmuster.
+  PAINT_SAMPLE
+  /// Radvariante.
+  WHEEL
+}
+
+/// Woher das Bild grundsaetzlich kommt.
+///
+/// Groeber als ImageOrigin und aus einem anderen Grund da: `origin` sagt, WO
+/// das Bild gefunden wurde, `sourceType` sagt, WAS es rechtlich und
+/// inhaltlich ist. Ein Herstellerbild kann ein aufgefundenes Original sein
+/// oder ein lizenziertes -- das ist derselbe Fundort und ein anderer
+/// Rechtsstand.
+///
+/// Die Reihenfolge ist die Vorrangfolge der Vorgabe: Original vor lizenziert
+/// vor erzeugt.
+enum ImageSourceType {
+  /// Rechtmaessig nutzbares Originalbild -- Pressefreigabe, freie Lizenz.
+  ORIGINAL
+  /// Eigenes oder eingekauftes Bild mit ausdruecklicher Nutzungserlaubnis.
+  LICENSED
+  /// Erzeugt. Zeigt kein tatsaechlich gebautes Fahrzeug.
+  GENERATED
+}
+
+/// Wie geklaert die Nutzung ist.
+///
+/// Eigenes Feld neben der Lizenzbezeichnung, weil "CC BY-SA 4.0" ein Name
+/// ist und keine Aussage darueber, ob wir die Bedingungen erfuellen. Nur
+/// geklaerte Bilder werden veroeffentlicht -- erzwungen in der
+/// Domaenenschicht, nicht als Empfehlung.
+enum ImageLicenceStatus {
+  /// Nutzung geklaert, keine weiteren Auflagen.
+  CLEARED
+  /// Nutzung erlaubt, Urhebernennung Pflicht. Wird angezeigt.
+  ATTRIBUTION_REQUIRED
+  /// Nur redaktionell, nicht werblich.
+  EDITORIAL_ONLY
+  /// Rechtsstand unklar. Nicht veroeffentlichen.
+  UNCLEAR
+  /// Ausdruecklich nicht nutzbar. Bleibt als Fundstelle erfasst.
+  NOT_CLEARED
+}
+
+/// Wie das Bild freigestellt ist.
+///
+/// Ein Fahrzeug vor einem Parkplatz mit fremden Autos im Bild ist kein
+/// Katalogbild. Der Zustand wird gespeichert und nicht geschaetzt, damit die
+/// Oberflaeche entscheiden kann, was sie zeigt -- und damit spaeter gezielt
+/// nachgearbeitet werden kann.
+enum ImageBackground {
+  /// Freigestellt, mit Transparenz.
+  CUTOUT
+  /// Neutraler, ruhiger Hintergrund ohne Ablenkung.
+  NEUTRAL
+  /// Umgebung im Bild: Strasse, Gebaeude, Menschen, andere Fahrzeuge.
+  SCENE
+  UNKNOWN
+}
+
+/// Motorfamilie, etwa "EA288" oder "N47".
+///
+/// Zwischen Hersteller und Motorcode fehlte bisher eine Ebene. Ein Kaeufer
+/// sucht "den EA288", ein Schrauber sucht "DBKA" -- beides muss zum selben
+/// Motor fuehren. Ohne diese Tabelle waere die Familie nur ein Wort im
+/// Motornamen und damit nicht durchsuchbar.
+model EngineFamily {
+  id String @id @default(cuid())
+
+  manufacturerId String
+  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Restrict)
+
+  /// Familienbezeichnung, etwa "EA288".
+  name String
+  slug String
+
+  /// Generation innerhalb der Familie, etwa "EA288 evo".
+  generationLabel String?
+
+  description String?
+
+  yearFrom Int?
+  yearTo   Int?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  engines Engine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([manufacturerId, slug])
+  @@index([status])
+}
+
+/// Modelljahr innerhalb einer Generation.
+///
+/// Das Baujahr eines Fahrzeugs und sein Modelljahr sind nicht dasselbe: ein
+/// im Oktober 2016 gebauter Wagen kann Modelljahr 2017 sein und dessen
+/// Ausstattungsumfang tragen. Wer danach nicht unterscheidet, ordnet
+/// Ausstattung dem falschen Fahrzeug zu.
+model ModelYear {
+  id String @id @default(cuid())
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  /// Das Modelljahr selbst, etwa 2017.
+  year Int
+
+  faceliftPhaseId String?
+  faceliftPhase   FaceliftPhase? @relation(fields: [faceliftPhaseId], references: [id], onDelete: SetNull)
+
+  /// Ab wann Fahrzeuge dieses Modelljahrs gebaut wurden. Meist im Vorjahr.
+  productionFrom DateTime?
+  productionTo   DateTime?
+
+  /// Was sich zu diesem Modelljahr geaendert hat.
+  changes String?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([generationId, year])
+  @@index([year])
+}
+
+/// Lackfarbe ab Werk.
+///
+/// Eigene Tabelle und nicht ein Textfeld an der Anzeige: Farbcodes sind das
+/// verlaesslichste Merkmal einer Werksfarbe, und Seltenheit einer Farbe
+/// schlaegt beim Wiederverkauf messbar durch.
+model PaintColor {
+  id String @id @default(cuid())
+
+  manufacturerId String
+  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Restrict)
+
+  name String
+  slug String
+  /// Farbcode des Herstellers, etwa "475" oder "LY9B". Das sichere Merkmal.
+  code String?
+
+  kind PaintKind @default(OTHER)
+
+  /// Naeherungswert fuer die Darstellung als Farbflaeche, etwa "#1c1c1c".
+  /// Ausdruecklich eine Naeherung: ein Bildschirmwert bildet keinen Lack ab.
+  approximateHex String?
+
+  description String?
+
+  /// Seltenheit. Immer Einschaetzung oder Marktbeobachtung, nie Spezifikation.
+  rarity             Rarity?
+  rarityEvidenceType EvidenceType?
+  rarityConfidence   ConfidenceLevel @default(MEDIUM)
+  rarityReasoning    String?
+  rarityDataBasis    String?
+  rarityObservedAt   DateTime?
+  raritySampleSize   Int?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  availability PaintColorAvailability[]
+  vehicles     UserVehicle[]
+  images       CatalogImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([manufacturerId, slug])
+  @@index([status])
+  @@index([code])
+}
+
+/// Wo und wann es eine Lackfarbe gab -- und was sie gekostet hat.
+model PaintColorAvailability {
+  id String @id @default(cuid())
+
+  paintColorId String
+  paintColor   PaintColor @relation(fields: [paintColorId], references: [id], onDelete: Cascade)
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  faceliftPhaseId String?
+  faceliftPhase   FaceliftPhase? @relation(fields: [faceliftPhaseId], references: [id], onDelete: SetNull)
+
+  kind AvailabilityKind @default(OPTIONAL)
+
+  yearFrom Int?
+  yearTo   Int?
+
+  /// Aufpreis der Neuwagenpreisliste in Cent. Ausdruecklich der historische
+  /// Listenpreis, nicht ein heutiger Wert -- was die Farbe heute ausmacht,
+  /// steht nirgends und wird deshalb auch nicht behauptet.
+  surchargeCents    Int?
+  surchargeCurrency String?   @default("EUR")
+  /// Zu welchem Zeitpunkt der Aufpreis galt.
+  surchargeAsOf     DateTime?
+
+  /// Marktbeschraenkung, etwa "nur Europa".
+  marketRegion String?
+
+  note String?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([paintColorId, generationId, faceliftPhaseId])
+  @@index([generationId])
+}
+
+/// Radvariante ab Werk.
+model WheelOption {
+  id String @id @default(cuid())
+
+  manufacturerId String
+  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Restrict)
+
+  name String
+  slug String
+  /// Styling- bzw. Bestellnummer, etwa "Styling 397" oder "S 2NP".
+  code String?
+
+  /// Durchmesser in Zoll. Zoll und nicht Millimeter, weil Felgen so bezeichnet
+  /// werden -- eine Umrechnung waere hier eine Fehlerquelle ohne Nutzen.
+  diameterInch Int?
+  /// Breite in Zoll, etwa 8.5.
+  widthInch    Decimal? @db.Decimal(3, 1)
+  /// Reifengroesse ab Werk, etwa "225/45 R18".
+  tyreSize     String?
+
+  /// Ausfuehrung, etwa "Doppelspeiche".
+  design String?
+
+  rarity             Rarity?
+  rarityEvidenceType EvidenceType?
+  rarityConfidence   ConfidenceLevel @default(MEDIUM)
+  rarityReasoning    String?
+  rarityDataBasis    String?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  availability WheelOptionAvailability[]
+  images       CatalogImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([manufacturerId, slug])
+  @@index([status])
+}
+
+model WheelOptionAvailability {
+  id String @id @default(cuid())
+
+  wheelOptionId String
+  wheelOption   WheelOption @relation(fields: [wheelOptionId], references: [id], onDelete: Cascade)
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  trimLineId String?
+  trimLine   TrimLine? @relation(fields: [trimLineId], references: [id], onDelete: Cascade)
+
+  kind AvailabilityKind @default(OPTIONAL)
+
+  yearFrom Int?
+  yearTo   Int?
+
+  surchargeCents    Int?
+  surchargeCurrency String? @default("EUR")
+
+  note String?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  faceliftPhase   FaceliftPhase? @relation(fields: [faceliftPhaseId], references: [id])
+  faceliftPhaseId String?
+
+  @@unique([wheelOptionId, generationId, trimLineId])
+  @@index([generationId])
+}
+
+/// Sondermodell bzw. Sonderserie, etwa "Golf GTI Clubsport" oder "M Sport
+/// Shadow Edition".
+///
+/// Sondermodelle sind fuer den Gebrauchtmarkt wichtiger als ihre Stueckzahl
+/// vermuten laesst: Sie buendeln Ausstattung, die sonst teuer war, und sind
+/// spaeter oft der einzige Weg, eine bestimmte Ausstattungskombination zu
+/// finden.
+model SpecialEdition {
+  id String @id @default(cuid())
+
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  name String
+  slug String
+  code String?
+
+  faceliftPhaseId String?
+  faceliftPhase   FaceliftPhase? @relation(fields: [faceliftPhaseId], references: [id], onDelete: SetNull)
+
+  yearFrom Int?
+  yearTo   Int?
+
+  /// Gebaute Stueckzahl, wenn sie belegt ist. Sonst leer -- eine geschaetzte
+  /// Stueckzahl waere eine erfundene Zahl mit dem Aussehen einer belegten.
+  buildCount   Int?
+  /// Auf welchen Markt die Serie beschraenkt war.
+  marketRegion String?
+
+  description            String?
+  /// Woran das Sondermodell am Fahrzeug zu erkennen ist.
+  distinguishingFeatures String?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  items        SpecialEditionItem[]
+  optionOffers OptionAvailability[]
+  images       CatalogImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([generationId, slug])
+  @@index([status])
+}
+
+model SpecialEditionItem {
+  id String @id @default(cuid())
+
+  specialEditionId String
+  specialEdition   SpecialEdition @relation(fields: [specialEditionId], references: [id], onDelete: Cascade)
+
+  optionId String
+  option   OptionalEquipment @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  /// Manche Sondermodelle enthalten Teile nur wahlweise.
+  optional Boolean @default(false)
+
+  note String?
+
+  @@unique([specialEditionId, optionId])
+}
+
+/// Bild zu einem Katalogeintrag.
+///
+/// Vorgabe ohne Ausnahme: keine erzeugten Bilder, keine erfundenen Bilder.
+/// Dieses Modell erzwingt das strukturell -- Fundstelle, Urheber, Lizenz und
+/// Bildunterschrift sind Pflichtfelder. Ein Bild, dessen Herkunft sich nicht
+/// aufschreiben laesst, laesst sich hier nicht speichern. Wo keines vorliegt,
+/// schreibt die Oberflaeche "Kein verifiziertes Bild verfuegbar." und zeigt
+/// nichts.
+///
+/// Polymorph wie Source (subjectType + subjectId): dieselbe Herkunftsangabe
+/// gilt fuer Ausstattung, Lackfarbe, Felge und Sondermodell gleichermassen.
+model CatalogImage {
+  id String @id @default(cuid())
+
+  /// Was zu sehen ist.
+  kind ImageKind
+
+  /**
+   * Wozu das Bild gehoert -- ausdruecklich als einzelne Bindungen und nicht
+   * als ein Verweis auf "die Baureihe".
+   * Das ist der Kern von Vorgabe 23. Ein Golf 7 vor dem Facelift und einer
+   * danach sind zwei verschiedene Autos; ein A4 B9 ist kein B9.5. Wer ein
+   * Bild nur an die Generation haengt, hat spaeter keine Moeglichkeit mehr
+   * zu erkennen, dass es die falsche Phase zeigt -- und die Oberflaeche
+   * zeigt es trotzdem an, weil sie es nicht besser weiss.
+   * Deshalb wird hier so genau gebunden, wie es die Aufnahme hergibt, und
+   * die Zuordnungsguete wird daraus BERECHNET (core/catalog/images.ts).
+   * Ein Bild ohne Facelift-Angabe ist damit kein Facelift-Bild -- es ist
+   * ein Bild mit unbekannter Phase, und genau das steht dann dabei.
+   */
+  generationId String?
+  generation   Generation? @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  faceliftPhaseId String?
+  faceliftPhase   FaceliftPhase? @relation(fields: [faceliftPhaseId], references: [id], onDelete: SetNull)
+
+  bodyTypeId String?
+  bodyType   BodyType? @relation(fields: [bodyTypeId], references: [id], onDelete: SetNull)
+
+  trimLineId String?
+  trimLine   TrimLine? @relation(fields: [trimLineId], references: [id], onDelete: SetNull)
+
+  powertrainId String?
+  powertrain   PowertrainCombination? @relation(fields: [powertrainId], references: [id], onDelete: SetNull)
+
+  specialEditionId String?
+  specialEdition   SpecialEdition? @relation(fields: [specialEditionId], references: [id], onDelete: SetNull)
+
+  optionId String?
+  option   OptionalEquipment? @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  paintColorId String?
+  paintColor   PaintColor? @relation(fields: [paintColorId], references: [id], onDelete: Cascade)
+
+  wheelOptionId String?
+  wheelOption   WheelOption? @relation(fields: [wheelOptionId], references: [id], onDelete: Cascade)
+
+  /// Baujahre, die das Bild abdeckt. Enger als die Generation, wenn bekannt.
+  yearFrom Int?
+  yearTo   Int?
+
+  /// Herkunft. Die Reihenfolge der Aufzaehlung ist die Rangfolge.
+  origin ImageOrigin
+
+  /// Was das Bild rechtlich und inhaltlich ist: Original, lizenziert oder
+  /// erzeugt. Muss zur Herkunft passen -- erzwungen in der Domaenenschicht:
+  /// GENERATED gibt es nur zu origin = AI_GENERATED und umgekehrt.
+  sourceType ImageSourceType
+
+  /// Wie geklaert die Nutzung ist. Nur CLEARED und ATTRIBUTION_REQUIRED
+  /// duerfen veroeffentlicht werden.
+  licenceStatus ImageLicenceStatus @default(UNCLEAR)
+
+  /// Freistellungszustand. Bestimmt, ob das Bild fuer die Katalogansicht
+  /// taugt oder nur als Beleg.
+  background ImageBackground @default(UNKNOWN)
+
+  /// Fundstelle. Bei uebernommenen Bildern Pflicht -- erzwungen in der
+  /// Domaenenschicht, weil sie bei einem erzeugten Bild sinnlos waere.
+  sourceUrl   String?
+  sourceTitle String?
+  /// Urheber bzw. Rechteinhaber. Bei uebernommenen Bildern Pflicht.
+  author      String?
+  /// Lizenzbezeichnung, etwa "CC BY-SA 4.0" oder "Pressefreigabe Hersteller".
+  /// Immer Pflicht: Auch ein erzeugtes Bild braucht eine Nutzungsgrundlage.
+  licence     String
+  licenceUrl  String?
+
+  /**
+   * Nur bei origin = AI_GENERATED, und dann Pflicht.
+   * Ohne Modell und Anweisung liesse sich spaeter nicht mehr sagen, warum
+   * das Bild aussieht, wie es aussieht -- und ein erzeugtes Bild waere von
+   * einer Aufnahme nicht mehr zu unterscheiden. Genau das darf nicht
+   * passieren.
+   */
+  generatedByModel String?
+  generatedPrompt  String?
+  generatedAt      DateTime?
+
+  /**
+   * Welche Merkmale die Anweisung beschrieben hat -- und welche nicht.
+   * Der Grund ist Vorgabe 4 der Auftragserweiterung: Ein erzeugtes Bild darf
+   * keine Fahrzeugdaten erfinden. Wenn nicht sicher bekannt ist, welche
+   * Scheinwerfer diese Phase hatte, dann steht das im Bild trotzdem drin --
+   * das Modell malt irgendwelche. Diese Liste haelt fest, was in der
+   * Anweisung tatsaechlich belegt war; alles Uebrige gilt als nicht
+   * verifiziert und wird beim Bild ausgewiesen.
+   */
+  generatedFromFields String[] @default([])
+
+  /// Was zu sehen ist. Pflicht: ein Bild ohne Unterschrift ist beliebig
+  /// deutbar und taugt als Beleg fuer eine Ausstattung nicht.
+  description String
+
+  /// Schluessel im Bildspeicher, sobald das Bild uebernommen wurde. Solange
+  /// leer, wird nur auf die Fundstelle verwiesen.
+  storageKey String?
+  width      Int?
+  height     Int?
+
+  capturedOn DateTime?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  sortIndex Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([generationId, kind, status])
+  @@index([sourceType])
+  @@index([licenceStatus])
+  @@index([optionId, status])
+  @@index([faceliftPhaseId])
+  @@index([paintColorId])
+  @@index([wheelOptionId])
+  @@index([origin])
+}
+
+/// Schluesselnummern aus der Zulassungsbescheinigung.
+///
+/// HSN steht in Feld 2.1, TSN in Feld 2.2. Zusammen bezeichnen sie eine
+/// Typvariante -- aber nicht eindeutig ein Fahrzeug: dieselbe Kombination
+/// kann mehrere Varianten umfassen. Deshalb keine Eindeutigkeit ueber das
+/// Paar allein und deshalb liefert die Suche eine Liste, keinen Treffer.
+model HsnTsnEntry {
+  id String @id @default(cuid())
+
+  /// Vier Ziffern.
+  hsn String
+  /// Drei Zeichen.
+  tsn String
+
+  /// Wie der Hersteller in den Papieren steht -- oft anders als der Markenname.
+  manufacturerName String
+  /// Typbezeichnung aus den Papieren.
+  typeName         String
+
+  generationId String?
+  generation   Generation? @relation(fields: [generationId], references: [id], onDelete: SetNull)
+
+  powertrainId String?
+  powertrain   PowertrainCombination? @relation(fields: [powertrainId], references: [id], onDelete: SetNull)
+
+  yearFrom Int?
+  yearTo   Int?
+
+  note String?
+
+  status      EditorialStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  dataQuality    DataQuality @default(UNVERIFIED)
+  lastVerifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([hsn, tsn, typeName])
+  @@index([hsn, tsn])
+  @@index([generationId])
+}
+
+/// "Mein Fahrzeug" -- das eigene Auto einer Person.
+///
+/// Nicht dasselbe wie eine Anzeige: Ein Fahrzeug hier steht nicht zum Verkauf.
+/// Es dient dem Abgleich mit dem Katalog -- welche Ausstattung ist drin, was
+/// war Serie, was war selten.
+model UserVehicle {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Eigener Name, etwa "Der Kombi".
+  label String
+
+  generationId String?
+  generation   Generation? @relation(fields: [generationId], references: [id], onDelete: SetNull)
+
+  faceliftPhaseId String?
+  faceliftPhase   FaceliftPhase? @relation(fields: [faceliftPhaseId], references: [id], onDelete: SetNull)
+
+  powertrainId String?
+  powertrain   PowertrainCombination? @relation(fields: [powertrainId], references: [id], onDelete: SetNull)
+
+  paintColorId String?
+  paintColor   PaintColor? @relation(fields: [paintColorId], references: [id], onDelete: SetNull)
+
+  /// Fahrgestellnummer. Wird NICHT als sichere Datenquelle behandelt: aus ihr
+  /// laesst sich ohne Herstellerdaten nur der Hersteller ablesen (ADR-005).
+  /// Alles Weitere bestaetigt die Halterin selbst.
+  vin                 String?
+  /// Hat die Halterin die aus der VIN abgeleitete Zuordnung bestaetigt?
+  vinConfirmedByOwner Boolean @default(false)
+
+  modelYear           Int?
+  firstRegistrationOn DateTime?
+  mileageKm           Int?
+
+  note String?
+
+  equipment UserVehicleEquipment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([generationId])
+}
+
+model UserVehicleEquipment {
+  id String @id @default(cuid())
+
+  userVehicleId String
+  userVehicle   UserVehicle @relation(fields: [userVehicleId], references: [id], onDelete: Cascade)
+
+  optionId String
+  option   OptionalEquipment @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  /// Hat die Halterin die Ausstattung am Fahrzeug tatsaechlich gesehen?
+  /// Ohne Bestaetigung bleibt es eine Vermutung und wird auch so angezeigt.
+  confirmed Boolean @default(false)
+
+  note String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([userVehicleId, optionId])
+}
+
+/// Merkzettel fuer Katalogeintraege -- Motor, Fahrzeug, Ausstattung, Farbe.
+///
+/// Polymorph, weil das Merken ueberall dieselbe Handlung ist und die Vorgabe
+/// verlangt, dass sie an jeder Stelle zur Verfuegung steht. Anzeigen haben
+/// weiterhin ihre eigene Tabelle (ListingFavorite): dort haengt mehr daran
+/// als ein Lesezeichen.
+model CatalogFavorite {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// "Engine", "PowertrainCombination", "OptionalEquipment", "Generation",
+  /// "PaintColor", "WheelOption", "SpecialEdition".
+  subjectType String
+  subjectId   String
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, subjectType, subjectId])
+  @@index([userId, createdAt])
+  @@index([subjectType, subjectId])
+}
+
+/// Wie viele Datensaetze zu einem Bereich BEKANNT sind.
+///
+/// Der Grund fuer diese Tabelle ist Vorgabe 24: keine vorgetaeuschte
+/// Vollstaendigkeit. "Alle Motoren enthalten" laesst sich nicht behaupten,
+/// solange niemand weiss, wie viele es gab. Eine Prozentangabe ohne bekannte
+/// Gesamtzahl waere eine erfundene Zahl -- und zwar die gefaehrlichste, weil
+/// sie Vollstaendigkeit suggeriert.
+///
+/// Deshalb: Eine Gesamtzahl gibt es nur, wenn jemand sie mit Quelle
+/// eingetragen hat. Fehlt sie, zeigt die Oberflaeche "X erfasst,
+/// Gesamtzahl nicht belegt" -- und keine Quote.
+model CatalogExpectation {
+  id String @id @default(cuid())
+
+  /// "Generation", "Manufacturer", "Model".
+  subjectType String
+  subjectId   String
+
+  /// Worauf sich die Zahl bezieht. Wertebereich siehe
+  /// core/catalog/completeness.ts.
+  aspect String
+
+  /// Bekannte Gesamtzahl laut der genannten Quelle.
+  knownTotal Int
+
+  /// Ohne Quelle keine Zahl. Pflichtfeld -- sonst waere die Angabe zur
+  /// Vollstaendigkeit selbst unbelegt.
+  sourceTitle String
+  sourceUrl   String?
+  checkedAt   DateTime @default(now())
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([subjectType, subjectId, aspect])
+  @@index([subjectType, subjectId])
+}
+
+/// Wofuer ein Einmal-Token gilt.
+enum OneTimeTokenPurpose {
+  /// Bestaetigung der E-Mail-Adresse nach der Registrierung.
+  EMAIL_VERIFICATION
+  /// Zuruecksetzen eines vergessenen Passworts.
+  PASSWORD_RESET
+}
+
+/// Einmal-Token fuer E-Mail-Bestaetigung und Passwort-Zuruecksetzung.
+///
+/// Gespeichert wird ausschliesslich der Hash -- wie bei Sitzungen. Ein
+/// Datenbankleck gibt damit keine gueltigen Token preis, und niemand mit
+/// Lesezugriff kann sich als jemand anders ausgeben.
+///
+/// `usedAt` statt Loeschen: Ein verbrauchter Token bleibt stehen, damit ein
+/// zweiter Versuch mit demselben Link eine verstaendliche Meldung bekommt
+/// ("bereits verwendet") statt "unbekannt". Der Unterschied zaehlt, weil
+/// E-Mail-Programme Links im Hintergrund oeffnen.
+model OneTimeToken {
+  id String @id @default(cuid())
+
+  /// SHA-256 des Tokens. Der Klartext steht ausschliesslich in der E-Mail.
+  tokenHash String @unique
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  purpose OneTimeTokenPurpose
+
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  /// Nur Hash -- rohe IP-Adressen werden nicht gespeichert.
+  requestedFromIpHash String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, purpose])
+  @@index([expiresAt])
+}
