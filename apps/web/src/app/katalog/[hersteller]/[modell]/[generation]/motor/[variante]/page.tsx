@@ -151,11 +151,51 @@ export default async function VariantePage({ params }: Props) {
           </span>
         ) : null}
       </h1>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-muted">
-        {TRANSMISSION_LABELS[eintrag.transmission.type]} ·{' '}
-        {DRIVE_TYPE_LABELS[eintrag.driveType]} ·{' '}
-        {FUEL_LABELS[eintrag.engine.fuelType]}
-      </p>
+      <div className="mt-4 flex flex-wrap gap-2 text-sm text-ink-muted">
+        <span className="inline-flex items-center gap-1.5 rounded-md border border-line/60 bg-surface-2 px-2.5 py-1">
+          {FUEL_LABELS[eintrag.engine.fuelType]}
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-md border border-line/60 bg-surface-2 px-2.5 py-1">
+          {TRANSMISSION_LABELS[eintrag.transmission.type]}
+          {eintrag.transmission.gears
+            ? ` · ${eintrag.transmission.gears} ${eintrag.transmission.gears === 1 ? 'Gang' : 'Gänge'}`
+            : ''}
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-md border border-line/60 bg-surface-2 px-2.5 py-1">
+          {DRIVE_TYPE_LABELS[eintrag.driveType]}
+        </span>
+      </div>
+
+      {(leistung || drehmoment || eintrag.acceleration0to100 || eintrag.topSpeedKmh) ? (
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {leistung ? (
+            <div className="rounded-lg border border-line/60 bg-surface-2 p-4 text-center">
+              <p className="tabular text-2xl font-bold text-accent">{formatPower(leistung)}</p>
+              <p className="mt-1 text-xs text-ink-muted">Leistung</p>
+            </div>
+          ) : null}
+          {drehmoment ? (
+            <div className="rounded-lg border border-line/60 bg-surface-2 p-4 text-center">
+              <p className="tabular text-2xl font-bold text-ink">{drehmoment} Nm</p>
+              <p className="mt-1 text-xs text-ink-muted">Drehmoment</p>
+            </div>
+          ) : null}
+          {eintrag.acceleration0to100 ? (
+            <div className="rounded-lg border border-line/60 bg-surface-2 p-4 text-center">
+              <p className="tabular text-2xl font-bold text-ink">
+                {Number(eintrag.acceleration0to100).toLocaleString('de-DE', { minimumFractionDigits: 1 })} s
+              </p>
+              <p className="mt-1 text-xs text-ink-muted">0–100 km/h</p>
+            </div>
+          ) : null}
+          {eintrag.topSpeedKmh ? (
+            <div className="rounded-lg border border-line/60 bg-surface-2 p-4 text-center">
+              <p className="tabular text-2xl font-bold text-ink">{eintrag.topSpeedKmh} km/h</p>
+              <p className="mt-1 text-xs text-ink-muted">Spitze</p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <section className="mt-10">
         <h2 className="text-lg font-semibold text-ink">Antrieb</h2>
@@ -201,103 +241,122 @@ export default async function VariantePage({ params }: Props) {
         </SpecList>
       </section>
 
-      <section className="mt-10">
-        <h2 className="text-lg font-semibold text-ink">Fahrleistungen</h2>
-        <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-          Diese Werte gelten für genau diese Kombination aus Motor, Getriebe und
-          Antriebsart — nicht für den Motor allein.
-        </p>
-        <SpecList>
-          <SpecRow
-            label="Beschleunigung 0–100 km/h"
-            value={
-              eintrag.acceleration0to100
-                ? `${Number(eintrag.acceleration0to100).toLocaleString('de-DE', {
-                    minimumFractionDigits: 1,
-                  })} s`
-                : null
-            }
-            hint={feldHinweis('acceleration0to100')}
-          />
-          <SpecRow
-            label="Höchstgeschwindigkeit"
-            value={eintrag.topSpeedKmh ? `${eintrag.topSpeedKmh} km/h` : null}
-          />
-        </SpecList>
-      </section>
+      {eintrag.acceleration0to100 || eintrag.topSpeedKmh ? (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-ink">Fahrleistungen</h2>
+          <p className="mt-2 max-w-2xl text-sm text-ink-muted">
+            Diese Werte gelten für genau diese Kombination aus Motor, Getriebe und
+            Antriebsart — nicht für den Motor allein.
+          </p>
+          <SpecList>
+            {eintrag.acceleration0to100 ? (
+              <SpecRow
+                label="Beschleunigung 0–100 km/h"
+                value={`${Number(eintrag.acceleration0to100).toLocaleString('de-DE', {
+                  minimumFractionDigits: 1,
+                })} s`}
+                hint={feldHinweis('acceleration0to100')}
+              />
+            ) : null}
+            {eintrag.topSpeedKmh ? (
+              <SpecRow
+                label="Höchstgeschwindigkeit"
+                value={`${eintrag.topSpeedKmh} km/h`}
+              />
+            ) : null}
+          </SpecList>
+        </section>
+      ) : null}
 
-      <section className="mt-10">
-        <h2 className="text-lg font-semibold text-ink">
-          <Term term="consumption">Verbrauch</Term> und Abgas
-        </h2>
-        <SpecList>
-          <SpecRow
-            label="Verbrauch kombiniert"
-            value={formatConsumption(
-              eintrag.consumptionCombined ? Number(eintrag.consumptionCombined) : null,
-              eintrag.consumptionUnit,
-              eintrag.measurementStandard,
-            )}
-            hint={feldHinweis('consumptionCombined')}
-          />
-          <SpecRow
-            label="CO₂ kombiniert"
-            value={
-              eintrag.co2CombinedGramPerKm ? `${eintrag.co2CombinedGramPerKm} g/km` : null
-            }
-          />
-          <SpecRow
-            label="Abgasnorm"
-            value={eintrag.emissionStandard}
-            gapReason="nicht erfasst"
-            hint="Bestimmt in vielen Städten die Einfahrterlaubnis."
-          />
-          {istStromer ? (
-            <>
+      {(eintrag.consumptionCombined || eintrag.co2CombinedGramPerKm || eintrag.emissionStandard || eintrag.fuelTankLitres || (istStromer && (eintrag.batteryCapacityKwh || eintrag.electricRangeKm))) ? (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-ink">
+            <Term term="consumption">Verbrauch</Term> und Abgas
+          </h2>
+          <SpecList>
+            {eintrag.consumptionCombined ? (
+              <SpecRow
+                label="Verbrauch kombiniert"
+                value={formatConsumption(
+                  Number(eintrag.consumptionCombined),
+                  eintrag.consumptionUnit,
+                  eintrag.measurementStandard,
+                )}
+                hint={feldHinweis('consumptionCombined')}
+              />
+            ) : null}
+            {eintrag.co2CombinedGramPerKm ? (
+              <SpecRow
+                label="CO₂ kombiniert"
+                value={`${eintrag.co2CombinedGramPerKm} g/km`}
+              />
+            ) : null}
+            {eintrag.emissionStandard ? (
+              <SpecRow
+                label="Abgasnorm"
+                value={eintrag.emissionStandard}
+                hint="Bestimmt in vielen Städten die Einfahrterlaubnis."
+              />
+            ) : null}
+            {istStromer && eintrag.batteryCapacityKwh ? (
               <SpecRow
                 label="Batteriekapazität"
-                value={
-                  eintrag.batteryCapacityKwh
-                    ? `${Number(eintrag.batteryCapacityKwh).toLocaleString('de-DE', {
-                        minimumFractionDigits: 1,
-                      })} kWh`
-                    : null
-                }
+                value={`${Number(eintrag.batteryCapacityKwh).toLocaleString('de-DE', {
+                  minimumFractionDigits: 1,
+                })} kWh`}
               />
+            ) : null}
+            {istStromer && eintrag.electricRangeKm ? (
               <SpecRow
                 label="Elektrische Reichweite"
                 value={formatKilometres(eintrag.electricRangeKm)}
               />
-            </>
-          ) : null}
-          <SpecRow
-            label="Tankinhalt"
-            value={eintrag.fuelTankLitres ? `${eintrag.fuelTankLitres} l` : null}
-          />
-        </SpecList>
-      </section>
+            ) : null}
+            {eintrag.fuelTankLitres ? (
+              <SpecRow
+                label="Tankinhalt"
+                value={`${eintrag.fuelTankLitres} l`}
+              />
+            ) : null}
+          </SpecList>
+        </section>
+      ) : null}
 
-      <section className="mt-10">
-        <h2 className="text-lg font-semibold text-ink">Alltag und Zuladung</h2>
-        <SpecList>
-          <SpecRow
-            label={<Term term="kerbWeight">Leergewicht</Term>}
-            value={formatKilograms(eintrag.kerbWeightKg)}
-          />
-          <SpecRow label="Zuladung" value={formatKilograms(eintrag.payloadKg)} />
-          <SpecRow
-            label="Anhängelast"
-            value={formatTowingCapacity(
-              eintrag.towingCapacityBrakedKg,
-              eintrag.towingCapacityUnbrakedKg,
-            )}
-            hint="Gebremst und ungebremst sind verschiedene Grenzen."
-          />
-          <SpecRow label="Sitzplätze" value={eintrag.seats} />
-          <SpecRow label="Türen" value={eintrag.doors} />
-          <SpecRow label="Karosserieform" value={eintrag.generation.bodyType?.name} />
-        </SpecList>
-      </section>
+      {(eintrag.kerbWeightKg || eintrag.payloadKg || eintrag.towingCapacityBrakedKg || eintrag.seats || eintrag.doors || eintrag.generation.bodyType) ? (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-ink">Alltag und Zuladung</h2>
+          <SpecList>
+            {eintrag.kerbWeightKg ? (
+              <SpecRow
+                label={<Term term="kerbWeight">Leergewicht</Term>}
+                value={formatKilograms(eintrag.kerbWeightKg)}
+              />
+            ) : null}
+            {eintrag.payloadKg ? (
+              <SpecRow label="Zuladung" value={formatKilograms(eintrag.payloadKg)} />
+            ) : null}
+            {eintrag.towingCapacityBrakedKg || eintrag.towingCapacityUnbrakedKg ? (
+              <SpecRow
+                label="Anhängelast"
+                value={formatTowingCapacity(
+                  eintrag.towingCapacityBrakedKg,
+                  eintrag.towingCapacityUnbrakedKg,
+                )}
+                hint="Gebremst und ungebremst sind verschiedene Grenzen."
+              />
+            ) : null}
+            {eintrag.seats ? (
+              <SpecRow label="Sitzplätze" value={eintrag.seats} />
+            ) : null}
+            {eintrag.doors ? (
+              <SpecRow label="Türen" value={eintrag.doors} />
+            ) : null}
+            {eintrag.generation.bodyType ? (
+              <SpecRow label="Karosserieform" value={eintrag.generation.bodyType.name} />
+            ) : null}
+          </SpecList>
+        </section>
+      ) : null}
 
       <div className="mt-8 flex flex-wrap gap-2">
         <MerkenKnopf
