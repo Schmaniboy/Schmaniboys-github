@@ -28,10 +28,10 @@ import { cn } from '@/lib/cn';
  */
 const CONTROL_CLASSES =
   'w-full rounded-md border border-line-interactive bg-surface-1 px-3 text-base sm:text-sm text-ink ' +
-  'placeholder:text-ink-subtle transition-colors ' +
+  'placeholder:text-ink-subtle transition-all duration-200 ' +
   'hover:border-ink-subtle disabled:cursor-not-allowed disabled:opacity-50 ' +
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ' +
-  'aria-[invalid=true]:border-critical';
+  'focus:border-accent focus:shadow-[0_0_0_3px_rgba(255,51,85,0.15)] focus:outline-none ' +
+  'aria-[invalid=true]:border-critical aria-[invalid=true]:shadow-[0_0_0_3px_rgba(248,113,113,0.15)]';
 
 function FieldFrame({
   id,

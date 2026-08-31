@@ -50,7 +50,7 @@ export default async function AdminPage() {
     >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {kacheln.map((kachel) => (
-          <div key={kachel.label} className="rounded-md border border-line/60 bg-surface-2 p-4">
+          <div key={kachel.label} className="rounded-md border border-line/60 bg-surface-2 p-4 transition-all duration-200 hover:border-line-interactive hover:shadow-raised">
             <p className="text-xs uppercase tracking-wide text-ink-subtle">{kachel.label}</p>
             <p className="tabular mt-1 text-2xl font-semibold text-ink">
               {kachel.wert.toLocaleString('de-DE')}

@@ -132,11 +132,11 @@ export default async function SuchePage({ searchParams }: Props) {
           type="search"
           defaultValue={input.q ?? ''}
           placeholder="BMW 320d G20 · DBKA · Golf 7 Panorama"
-          className="h-11 min-w-0 flex-1 rounded-md border border-line-interactive bg-surface-1 px-3 text-base text-ink placeholder:text-ink-subtle hover:border-ink-subtle sm:text-sm"
+          className="h-11 min-w-0 flex-1 rounded-md border border-line-interactive bg-surface-1 px-3 text-base text-ink placeholder:text-ink-subtle transition-all duration-200 hover:border-ink-subtle focus:border-accent focus:shadow-[0_0_0_3px_rgba(255,51,85,0.15)] focus:outline-none sm:text-sm"
         />
         <button
           type="submit"
-          className="h-11 rounded-md bg-accent px-4 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong"
+          className="h-11 rounded-md bg-accent px-5 text-sm font-semibold text-accent-ink shadow-[0_2px_8px_rgba(255,51,85,0.3)] transition-all duration-200 hover:-translate-y-px hover:bg-accent-strong hover:shadow-[0_4px_16px_rgba(255,51,85,0.4)] active:translate-y-0 active:bg-accent-deep"
         >
           Suchen
         </button>
@@ -273,7 +273,7 @@ export default async function SuchePage({ searchParams }: Props) {
                 return (
                   <li
                     key={treffer.id}
-                    className="relative rounded-lg border border-line bg-surface-2 transition-colors hover:border-line-interactive"
+                    className="relative rounded-lg border border-line bg-surface-2 transition-all duration-200 hover:-translate-y-0.5 hover:border-line-interactive hover:shadow-raised"
                   >
                     {/*
                       Der Auswahlknopf steht NEBEN dem Trefferlink, nicht
