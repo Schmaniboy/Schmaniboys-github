@@ -121,6 +121,78 @@ export default async function VariantePage({ params }: Props) {
   const istStromer =
     eintrag.engine.fuelType === 'ELECTRIC' || eintrag.engine.fuelType === 'PLUGIN_HYBRID';
 
+  const ps = leistung ? Math.round(leistung * 1.35962) : null;
+
+  const kraftstoffArt = eintrag.engine.fuelType;
+  const zylinder = eintrag.engine.cylinders;
+  const beschleunigung = eintrag.acceleration0to100;
+  const verbrauchKombiniert = eintrag.consumptionCombined;
+  const antriebsart = eintrag.driveType;
+
+  function kurzfassung(): string | null {
+    const teile: string[] = [];
+
+    if (kraftstoffArt === 'DIESEL') {
+      teile.push('ein Dieselmotor');
+    } else if (kraftstoffArt === 'PETROL') {
+      teile.push('ein Benzinmotor');
+    } else if (kraftstoffArt === 'ELECTRIC') {
+      teile.push('ein Elektromotor');
+    } else if (kraftstoffArt === 'PLUGIN_HYBRID') {
+      teile.push('ein Plug-in-Hybrid');
+    } else if (kraftstoffArt === 'HYBRID_PETROL') {
+      teile.push('ein Benzin-Hybrid');
+    } else if (kraftstoffArt === 'HYBRID_DIESEL') {
+      teile.push('ein Diesel-Hybrid');
+    } else {
+      return null;
+    }
+
+    if (ps) {
+      teile.push(`mit ${ps} PS`);
+    }
+
+    if (zylinder) {
+      teile.push(`und ${zylinder} Zylindern`);
+    }
+
+    let satz = `Das ist ${teile.join(' ')}.`;
+
+    if (beschleunigung) {
+      const sekunden = Number(beschleunigung).toLocaleString('de-DE', { minimumFractionDigits: 1 });
+      if (Number(beschleunigung) < 6) {
+        satz += ` In ${sekunden} Sekunden von 0 auf 100 — das ist sehr sportlich.`;
+      } else if (Number(beschleunigung) < 8) {
+        satz += ` In ${sekunden} Sekunden von 0 auf 100 — fluessig im Alltag und genuegend Reserven zum Ueberholen.`;
+      } else if (Number(beschleunigung) < 11) {
+        satz += ` In ${sekunden} Sekunden von 0 auf 100 — ausreichend fuer den normalen Verkehr.`;
+      } else {
+        satz += ` In ${sekunden} Sekunden von 0 auf 100 — eher gemuetlich unterwegs.`;
+      }
+    }
+
+    if (verbrauchKombiniert) {
+      const verbrauch = Number(verbrauchKombiniert).toLocaleString('de-DE', { minimumFractionDigits: 1 });
+      if (kraftstoffArt === 'ELECTRIC') {
+        satz += ` Der Stromverbrauch liegt bei ${verbrauch} kWh auf 100 km.`;
+      } else if (Number(verbrauchKombiniert) < 5.5) {
+        satz += ` Mit ${verbrauch} Litern auf 100 km ist er sparsam.`;
+      } else if (Number(verbrauchKombiniert) < 8) {
+        satz += ` Der Verbrauch von ${verbrauch} Litern auf 100 km ist durchschnittlich.`;
+      } else {
+        satz += ` Mit ${verbrauch} Litern auf 100 km braucht er etwas mehr.`;
+      }
+    }
+
+    if (antriebsart === 'ALL') {
+      satz += ' Er hat Allradantrieb — gut bei Regen und Schnee.';
+    }
+
+    return satz;
+  }
+
+  const zusammenfassung = kurzfassung();
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
       <Breadcrumbs
@@ -166,11 +238,19 @@ export default async function VariantePage({ params }: Props) {
         </span>
       </div>
 
+      {zusammenfassung ? (
+        <div className="mt-6 rounded-lg border border-accent/20 bg-accent/5 px-4 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">Auf einen Blick</p>
+          <p className="mt-1 text-sm leading-relaxed text-ink-muted">{zusammenfassung}</p>
+        </div>
+      ) : null}
+
       {(leistung || drehmoment || eintrag.acceleration0to100 || eintrag.topSpeedKmh) ? (
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {leistung ? (
             <div className="rounded-lg border border-line/60 bg-surface-2 p-4 text-center">
               <p className="tabular text-2xl font-bold text-accent">{formatPower(leistung)}</p>
+              {ps ? <p className="tabular mt-0.5 text-sm text-ink-subtle">{ps} PS</p> : null}
               <p className="mt-1 text-xs text-ink-muted">Leistung</p>
             </div>
           ) : null}
@@ -199,6 +279,7 @@ export default async function VariantePage({ params }: Props) {
 
       <section className="mt-10">
         <h2 className="text-lg font-semibold text-ink">Antrieb</h2>
+        <p className="mt-1 mb-2 text-xs text-ink-subtle">Motor, Getriebe und Antriebsart — das Herzstueck des Fahrzeugs.</p>
         <SpecList>
           <SpecRow
             label={<Term term="power">Leistung</Term>}
@@ -273,6 +354,7 @@ export default async function VariantePage({ params }: Props) {
           <h2 className="text-lg font-semibold text-ink">
             <Term term="consumption">Verbrauch</Term> und Abgas
           </h2>
+          <p className="mt-1 mb-2 text-xs text-ink-subtle">Was das Auto an Kraftstoff oder Strom braucht — und welche Abgasnorm gilt.</p>
           <SpecList>
             {eintrag.consumptionCombined ? (
               <SpecRow
@@ -325,6 +407,7 @@ export default async function VariantePage({ params }: Props) {
       {(eintrag.kerbWeightKg || eintrag.payloadKg || eintrag.towingCapacityBrakedKg || eintrag.seats || eintrag.doors || eintrag.generation.bodyType) ? (
         <section className="mt-10">
           <h2 className="text-lg font-semibold text-ink">Alltag und Zuladung</h2>
+          <p className="mt-1 mb-2 text-xs text-ink-subtle">Gewicht, Platz und was man mitnehmen oder anhaengen kann.</p>
           <SpecList>
             {eintrag.kerbWeightKg ? (
               <SpecRow

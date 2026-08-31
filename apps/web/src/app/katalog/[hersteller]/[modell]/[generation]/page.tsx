@@ -203,9 +203,10 @@ export default async function GenerationPage({ params }: Props) {
       <section className="mt-12">
         <h2 className="text-lg font-semibold text-ink">Motorvarianten</h2>
         <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-          Fahrleistungen hängen an der ganzen Kombination aus Motor, Getriebe und{' '}
+          Welche Motoren es fuer diese Baureihe gibt — mit{' '}
+          <Term term="power">Leistung</Term>, Verbrauch und Beschleunigung.
+          Fahrleistungen haengen an der ganzen Kombination aus Motor, Getriebe und{' '}
           <Term term="driveType">Antriebsart</Term> — nicht am Motor allein.
-          Deshalb steht hier jede Kombination einzeln.
         </p>
 
         {eintrag.powertrains.length === 0 ? (
@@ -263,7 +264,18 @@ export default async function GenerationPage({ params }: Props) {
                         {DRIVE_TYPE_LABELS[antrieb.driveType]}
                       </span>
                     </Td>
-                    <Td numeric>{formatPower(antrieb.powerKw) ?? <DataGap reason="" />}</Td>
+                    <Td numeric>
+                      {antrieb.powerKw ? (
+                        <>
+                          {formatPower(antrieb.powerKw)}
+                          <span className="mt-0.5 block text-xs text-ink-subtle">
+                            {Math.round(antrieb.powerKw * 1.35962)} PS
+                          </span>
+                        </>
+                      ) : (
+                        <DataGap reason="" />
+                      )}
+                    </Td>
                     <Td numeric>
                       {antrieb.acceleration0to100 ? (
                         `${Number(antrieb.acceleration0to100).toLocaleString('de-DE', {
@@ -307,6 +319,10 @@ export default async function GenerationPage({ params }: Props) {
               Ausstattung im Einzelnen →
             </Link>
           </div>
+          <p className="mt-2 max-w-2xl text-sm text-ink-muted">
+            Welche Versionen der Hersteller anbietet — von der Basis bis zur
+            Vollausstattung. Die Linie bestimmt, was ab Werk verbaut ist.
+          </p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {eintrag.trimLines.map((linie) => (
               <Card key={linie.id} className="transition-all duration-200 hover:-translate-y-0.5 hover:border-line-interactive hover:shadow-raised">
@@ -413,6 +429,10 @@ export default async function GenerationPage({ params }: Props) {
       {wissen.maintenance.length > 0 ? (
         <section className="mt-12">
           <h2 className="text-lg font-semibold text-ink">Wartung</h2>
+          <p className="mt-2 max-w-2xl text-sm text-ink-muted">
+            Was regelmaessig gemacht werden muss, damit das Fahrzeug zuverlaessig
+            bleibt — und in welchen Abstaenden.
+          </p>
           <div className="mt-4">
             <Table caption="Wartungsarbeiten und Intervalle">
               <thead>
@@ -568,6 +588,10 @@ export default async function GenerationPage({ params }: Props) {
       {sonstigeNotizen.length > 0 ? (
         <section className="mt-12">
           <h2 className="text-lg font-semibold text-ink">Im Alltag</h2>
+          <p className="mt-2 max-w-2xl text-sm text-ink-muted">
+            Wie sich das Fahrzeug im taeglichen Gebrauch schlaegt — Platz, Komfort,
+            Eigenheiten.
+          </p>
           <div className="mt-4 space-y-4">
             {sonstigeNotizen.map((notiz) => (
               <Card key={notiz.id} className="transition-all duration-200 hover:border-line-interactive hover:shadow-raised">

@@ -72,27 +72,28 @@ export default function HomePage() {
       />
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-line bg-surface-1">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,51,85,0.1),transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_600px_at_80%_60%,rgba(255,51,85,0.04),transparent)]" />
-        {/* Logo als grosses Hintergrund-Element */}
-        <div className="pointer-events-none absolute right-[5%] top-1/2 hidden -translate-y-1/2 select-none opacity-[0.07] lg:block">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,51,85,0.12),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_85%_50%,rgba(255,51,85,0.06),transparent)]" />
+        {/* Logo als grosses Hintergrund-Element — Desktop */}
+        <div className="pointer-events-none absolute right-[2%] top-1/2 hidden -translate-y-1/2 select-none lg:block xl:right-[6%]">
           <Image
             src="/logo-shield.svg"
             alt=""
-            width={480}
-            height={515}
-            className="h-[520px] w-auto drop-shadow-[0_0_80px_rgba(255,51,85,0.15)]"
+            width={560}
+            height={600}
+            className="hero-logo h-[600px] w-auto opacity-[0.05]"
             priority
           />
         </div>
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:py-36">
           <div className="max-w-2xl">
+            {/* Logo — nur Mobil */}
             <Image
               src="/logo-shield.svg"
               alt="CARONEX"
-              width={64}
-              height={69}
-              className="fade-in-up mb-6 h-16 w-auto drop-shadow-[0_0_20px_rgba(255,51,85,0.3)] lg:hidden"
+              width={72}
+              height={77}
+              className="fade-in-up mb-6 h-[72px] w-auto drop-shadow-[0_0_24px_rgba(255,51,85,0.35)] lg:hidden"
               priority
             />
             <p className="eyebrow fade-in-up fade-in-up-delay-1 mb-4">Fahrzeugwissen · Motorvarianten · Verkaufen</p>
