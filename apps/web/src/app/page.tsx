@@ -74,14 +74,25 @@ export default function HomePage() {
       <section className="relative overflow-hidden border-b border-line bg-surface-1">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,51,85,0.1),transparent)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_600px_at_80%_60%,rgba(255,51,85,0.04),transparent)]" />
+        {/* Logo als grosses Hintergrund-Element */}
+        <div className="pointer-events-none absolute right-[5%] top-1/2 hidden -translate-y-1/2 select-none opacity-[0.07] lg:block">
+          <Image
+            src="/logo-shield.svg"
+            alt=""
+            width={480}
+            height={515}
+            className="h-[520px] w-auto drop-shadow-[0_0_80px_rgba(255,51,85,0.15)]"
+            priority
+          />
+        </div>
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:py-36">
           <div className="max-w-2xl">
             <Image
               src="/logo-shield.svg"
-              alt=""
-              width={80}
-              height={86}
-              className="fade-in-up mb-8 h-20 w-auto drop-shadow-[0_0_24px_rgba(255,51,85,0.25)]"
+              alt="CARONEX"
+              width={64}
+              height={69}
+              className="fade-in-up mb-6 h-16 w-auto drop-shadow-[0_0_20px_rgba(255,51,85,0.3)] lg:hidden"
               priority
             />
             <p className="eyebrow fade-in-up fade-in-up-delay-1 mb-4">Fahrzeugwissen · Motorvarianten · Verkaufen</p>
