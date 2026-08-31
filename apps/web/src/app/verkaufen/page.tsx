@@ -61,6 +61,39 @@ export default async function VerkaufenPage() {
         <VinForm />
       </div>
 
+      <section className="mt-12">
+        <div className="accent-rule mb-6" />
+        <h2 className="text-xl font-semibold text-ink">Was wir abfragen</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">
+          Damit Ihre Anzeige vollständig und glaubwürdig wird, fragen wir im nächsten
+          Schritt diese Punkte ab. So weiß ein Interessent sofort, woran er ist.
+        </p>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {[
+            { frage: 'Kilometerstand', detail: 'Aktueller Stand laut Tacho' },
+            { frage: 'Erstzulassung', detail: 'Monat und Jahr der ersten Zulassung' },
+            { frage: 'Anzahl Vorbesitzer', detail: 'Laut Zulassungsbescheinigung Teil II' },
+            { frage: 'HU / TÜV gültig bis', detail: 'Monat und Jahr der nächsten Hauptuntersuchung' },
+            { frage: 'Unfallschäden', detail: 'Unfallfrei, reparierter Schaden oder nicht repariert' },
+            { frage: 'Fahrzeugzustand', detail: 'Neuwertig, gut, normal, reparaturbedürftig' },
+            { frage: 'Scheckheft gepflegt', detail: 'Lückenlose Wartung beim Vertragshändler oder freier Werkstatt' },
+            { frage: 'Lackzustand', detail: 'Originallack, nachlackiert, Folierung, sichtbare Schäden' },
+            { frage: 'Raucher- / Nichtraucherfahrzeug', detail: 'War das Fahrzeug rauchfrei?' },
+            { frage: 'Reifen und Felgen', detail: 'Sommer, Winter, Ganzjahres — Profil und Zustand' },
+            { frage: 'Sonderausstattung', detail: 'Navi, Leder, Panoramadach, Standheizung etc.' },
+            { frage: 'Preisvorstellung', detail: 'Festpreis, Verhandlungsbasis oder Höchstgebot' },
+          ].map((item) => (
+            <div
+              key={item.frage}
+              className="rounded-lg border border-line/60 bg-surface-2 p-4 transition-all duration-200 hover:border-line-interactive hover:shadow-raised"
+            >
+              <p className="text-sm font-semibold text-ink">{item.frage}</p>
+              <p className="mt-1 text-xs text-ink-muted">{item.detail}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {entwuerfe.length > 0 ? (
         <Card className="mt-10">
           <CardHeader title="Ihre Entwürfe" eyebrow="Fortsetzen" />

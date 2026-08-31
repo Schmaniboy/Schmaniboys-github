@@ -52,16 +52,22 @@ export function Fahrzeugbild({
   if (!hatBild(ergebnis)) {
     return (
       <figure
-        className={`flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line bg-surface-2 px-6 py-10 text-center ${className ?? ''}`}
+        className={`relative overflow-hidden rounded-lg border border-line bg-gradient-to-br from-surface-2 to-surface-1 text-center ${className ?? ''}`}
       >
-        <p className="text-sm text-ink-muted">{KEIN_BILD}</p>
-        <figcaption className="max-w-md text-xs leading-relaxed text-ink-subtle">
-          {ergebnis.rejected > 0
-            ? 'Vorhandene Aufnahmen zeigen nachweislich eine andere Ausführung — eine andere ' +
-              'Generation, Phase oder Karosserie. Ein falsches Bild wäre schlechter als keines.'
-            : 'Zu diesem Eintrag liegt kein Bild mit belegter Herkunft vor. Bilder werden nur ' +
-              'aufgenommen, wenn Fundstelle, Urheber und Lizenz feststehen.'}
-        </figcaption>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_60%,rgba(255,51,85,0.04),transparent)]" />
+        <div className="relative flex flex-col items-center justify-center gap-3 px-6 py-14">
+          <svg viewBox="0 0 120 48" className="h-12 w-auto text-ink-subtle/30" fill="currentColor" aria-hidden="true">
+            <path d="M18 38h-6a2 2 0 0 1-2-2v-8a2 2 0 0 1 .6-1.4l8-8A2 2 0 0 1 20 18h16l6-6a2 2 0 0 1 1.4-.6H80a2 2 0 0 1 1.4.6l10 10a2 2 0 0 1 .6 1.4v12a2 2 0 0 1-2 2h-6" />
+            <path d="M18 38a6 6 0 1 0 12 0 6 6 0 0 0-12 0Zm60 0a6 6 0 1 0 12 0 6 6 0 0 0-12 0Z" />
+            <rect x="36" y="24" width="28" height="8" rx="1.5" opacity="0.3" />
+          </svg>
+          <p className="text-sm font-medium text-ink-muted">{KEIN_BILD}</p>
+          <figcaption className="max-w-sm text-xs leading-relaxed text-ink-subtle">
+            {ergebnis.rejected > 0
+              ? 'Vorhandene Aufnahmen zeigen eine andere Ausführung. Ein falsches Bild wäre schlechter als keines.'
+              : 'Kein Bild mit belegter Herkunft vorhanden. Bilder werden nur aufgenommen, wenn Fundstelle, Urheber und Lizenz feststehen.'}
+          </figcaption>
+        </div>
       </figure>
     );
   }
@@ -72,12 +78,20 @@ export function Fahrzeugbild({
   if (!quelle) {
     return (
       <figure
-        className={`flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line bg-surface-2 px-6 py-10 text-center ${className ?? ''}`}
+        className={`relative overflow-hidden rounded-lg border border-line bg-gradient-to-br from-surface-2 to-surface-1 text-center ${className ?? ''}`}
       >
-        <p className="text-sm text-ink-muted">{KEIN_BILD}</p>
-        <figcaption className="text-xs text-ink-subtle">
-          Zu diesem Eintrag ist eine Fundstelle vermerkt, aber noch keine Bilddatei übernommen.
-        </figcaption>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_60%,rgba(255,51,85,0.04),transparent)]" />
+        <div className="relative flex flex-col items-center justify-center gap-3 px-6 py-14">
+          <svg viewBox="0 0 120 48" className="h-12 w-auto text-ink-subtle/30" fill="currentColor" aria-hidden="true">
+            <path d="M18 38h-6a2 2 0 0 1-2-2v-8a2 2 0 0 1 .6-1.4l8-8A2 2 0 0 1 20 18h16l6-6a2 2 0 0 1 1.4-.6H80a2 2 0 0 1 1.4.6l10 10a2 2 0 0 1 .6 1.4v12a2 2 0 0 1-2 2h-6" />
+            <path d="M18 38a6 6 0 1 0 12 0 6 6 0 0 0-12 0Zm60 0a6 6 0 1 0 12 0 6 6 0 0 0-12 0Z" />
+            <rect x="36" y="24" width="28" height="8" rx="1.5" opacity="0.3" />
+          </svg>
+          <p className="text-sm font-medium text-ink-muted">{KEIN_BILD}</p>
+          <figcaption className="max-w-sm text-xs leading-relaxed text-ink-subtle">
+            Fundstelle vermerkt, aber noch keine Bilddatei übernommen.
+          </figcaption>
+        </div>
       </figure>
     );
   }

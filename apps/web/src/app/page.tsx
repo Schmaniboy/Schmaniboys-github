@@ -31,10 +31,10 @@ const BEREICHE = [
     aktion: 'Anzeige erstellen',
   },
   {
-    titel: 'Marktplatz',
-    text: 'Fahrzeuganzeigen durchsuchen, vergleichen und direkt über die Plattform Kontakt aufnehmen — ohne externe Portale.',
-    href: '/marktplatz',
-    aktion: 'Zum Marktplatz',
+    titel: 'Motorvarianten',
+    text: 'Motor, Getriebe und Antrieb als Kombination — mit Leistung, Verbrauch, Beschleunigung und Messverfahren. Filtern, sortieren und direkt vergleichen.',
+    href: '/suche',
+    aktion: 'Motorvarianten durchsuchen',
   },
   {
     titel: 'Schlüsselnummern',
@@ -84,7 +84,7 @@ export default function HomePage() {
               className="fade-in-up mb-8 h-20 w-auto drop-shadow-[0_0_24px_rgba(255,51,85,0.25)]"
               priority
             />
-            <p className="eyebrow fade-in-up fade-in-up-delay-1 mb-4">Fahrzeugwissen · Bewertung · Marktplatz</p>
+            <p className="eyebrow fade-in-up fade-in-up-delay-1 mb-4">Fahrzeugwissen · Motorvarianten · Verkaufen</p>
             <h1 className="fade-in-up fade-in-up-delay-1 text-4xl font-semibold leading-[1.08] tracking-tight text-ink sm:text-5xl lg:text-6xl">
               Autokauf und Autoverkauf,
               <br />
@@ -167,9 +167,9 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
             {[
-              { zahl: '25', label: 'Hersteller' },
-              { zahl: '114', label: 'Modelle' },
-              { zahl: '123', label: 'Generationen' },
+              { zahl: '35', label: 'Hersteller' },
+              { zahl: '160+', label: 'Modelle' },
+              { zahl: '190+', label: 'Generationen' },
               { zahl: '100%', label: 'Quellenbelegt' },
             ].map((stat) => (
               <div key={stat.label} className="text-center">

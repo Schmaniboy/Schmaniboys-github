@@ -56,26 +56,31 @@ export default async function KatalogPage() {
             <li key={eintrag.id}>
               <Link
                 href={`/katalog/${eintrag.slug}`}
-                className="group block rounded-lg border border-line bg-surface-2 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-line-interactive hover:shadow-raised"
+                className="group flex items-center gap-4 rounded-lg border border-line bg-surface-2 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-line-interactive hover:shadow-raised"
               >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-base font-semibold text-ink">{eintrag.name}</h2>
-                  <span className="text-ink-subtle transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true">→</span>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent/15 to-accent/5 text-lg font-bold text-accent transition-colors group-hover:from-accent/25 group-hover:to-accent/10">
+                  {eintrag.name.charAt(0)}
                 </div>
-                <p className="mt-1 text-sm text-ink-subtle">
-                  {eintrag.country ?? <DataGap reason="Land nicht erfasst" />}
-                </p>
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="inline-flex h-5 items-center rounded bg-accent/10 px-2 text-xs font-medium text-accent">
-                    {eintrag._count.models === 0
-                      ? '—'
-                      : eintrag._count.models}
-                  </span>
-                  <span className="text-sm text-ink-muted">
-                    {eintrag._count.models === 0
-                      ? 'Noch keine veröffentlichten Modelle'
-                      : eintrag._count.models === 1 ? 'Modell' : 'Modelle'}
-                  </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-base font-semibold text-ink">{eintrag.name}</h2>
+                    <span className="text-ink-subtle transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true">→</span>
+                  </div>
+                  <p className="mt-0.5 text-sm text-ink-subtle">
+                    {eintrag.country ?? <DataGap reason="Land nicht erfasst" />}
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="inline-flex h-5 items-center rounded bg-accent/10 px-2 text-xs font-medium text-accent">
+                      {eintrag._count.models === 0
+                        ? '—'
+                        : eintrag._count.models}
+                    </span>
+                    <span className="text-sm text-ink-muted">
+                      {eintrag._count.models === 0
+                        ? 'Noch keine veröffentlichten Modelle'
+                        : eintrag._count.models === 1 ? 'Modell' : 'Modelle'}
+                    </span>
+                  </div>
                 </div>
               </Link>
             </li>

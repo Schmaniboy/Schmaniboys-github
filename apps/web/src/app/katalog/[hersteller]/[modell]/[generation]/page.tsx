@@ -170,7 +170,7 @@ export default async function GenerationPage({ params }: Props) {
           </p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {eintrag.faceliftPhases.map((phase) => (
-              <Card key={phase.id}>
+              <Card key={phase.id} className="transition-all duration-200 hover:-translate-y-0.5 hover:border-line-interactive hover:shadow-raised">
                 <CardBody className="space-y-2">
                   <div className="flex items-baseline justify-between gap-3">
                     <h3 className="text-base font-semibold text-ink">{phase.name}</h3>
@@ -309,7 +309,7 @@ export default async function GenerationPage({ params }: Props) {
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {eintrag.trimLines.map((linie) => (
-              <Card key={linie.id}>
+              <Card key={linie.id} className="transition-all duration-200 hover:-translate-y-0.5 hover:border-line-interactive hover:shadow-raised">
                 <CardBody className="space-y-2">
                   <div className="flex items-baseline justify-between gap-3">
                     <h3 className="text-base font-semibold text-ink">{linie.name}</h3>
@@ -340,7 +340,7 @@ export default async function GenerationPage({ params }: Props) {
           </p>
           <div className="mt-4 space-y-3">
             {wissen.issues.map((problem) => (
-              <Card key={problem.id}>
+              <Card key={problem.id} className="transition-all duration-200 hover:border-line-interactive hover:shadow-raised">
                 <CardBody className="space-y-3">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -466,7 +466,7 @@ export default async function GenerationPage({ params }: Props) {
           </p>
           <div className="mt-4 space-y-3">
             {wissen.costs.map((kosten) => (
-              <Card key={kosten.id}>
+              <Card key={kosten.id} className="transition-all duration-200 hover:border-line-interactive hover:shadow-raised">
                 <CardBody className="space-y-2">
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
                     <div>
@@ -570,7 +570,7 @@ export default async function GenerationPage({ params }: Props) {
           <h2 className="text-lg font-semibold text-ink">Im Alltag</h2>
           <div className="mt-4 space-y-4">
             {sonstigeNotizen.map((notiz) => (
-              <Card key={notiz.id}>
+              <Card key={notiz.id} className="transition-all duration-200 hover:border-line-interactive hover:shadow-raised">
                 <CardBody className="space-y-2">
                   <p className="eyebrow">{TOPIC_LABELS[notiz.topic] ?? notiz.topic}</p>
                   <h3 className="text-base font-semibold text-ink">{notiz.heading}</h3>

@@ -14,10 +14,9 @@ import { NotificationBell } from './NotificationBell';
 
 const NAVIGATION = [
   { href: '/katalog', label: 'Fahrzeugwissen', hint: 'Marken, Generationen, Motoren, Ausstattung' },
-  { href: '/suche', label: 'Suche', hint: 'Motorvarianten filtern und vergleichen' },
+  { href: '/suche', label: 'Motorvarianten', hint: 'Motorvarianten filtern und vergleichen' },
   { href: '/katalog/vergleich', label: 'Vergleich', hint: 'Bis zu vier Fahrzeuge nebeneinander' },
   { href: '/katalog/datenbestand', label: 'Datenbestand', hint: 'Was erfasst ist — und was nicht' },
-  { href: '/marktplatz', label: 'Marktplatz', hint: 'Fahrzeuganzeigen' },
   { href: '/verkaufen', label: 'Verkaufen', hint: 'Anzeige erstellen' },
   { href: '/katalog/hsn-tsn', label: 'HSN/TSN', hint: 'Schlüsselnummern nachschlagen' },
   { href: '/registrieren', label: 'Konto erstellen', hint: 'Merkzettel, eigene Fahrzeuge, Anzeigen' },
@@ -27,6 +26,8 @@ const NAVIGATION = [
 const HAUPTNAVIGATION = NAVIGATION.filter((eintrag) =>
   ['/katalog', '/suche', '/verkaufen'].includes(eintrag.href),
 );
+
+
 
 export function SiteHeader() {
   return (

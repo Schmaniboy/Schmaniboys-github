@@ -61,7 +61,7 @@ export default async function ModellPage({ params }: Props) {
             <li key={generation.id}>
               <Link
                 href={`/katalog/${eintrag.manufacturer.slug}/${eintrag.slug}/${generation.slug}`}
-                className="flex flex-wrap items-baseline justify-between gap-3 rounded-lg border border-line bg-surface-2 p-5 transition-colors hover:border-line-interactive"
+                className="group flex flex-wrap items-baseline justify-between gap-3 rounded-lg border border-line bg-surface-2 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-line-interactive hover:shadow-raised"
               >
                 <div>
                   <h3 className="text-base font-semibold text-ink">

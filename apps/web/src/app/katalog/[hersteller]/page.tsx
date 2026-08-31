@@ -59,19 +59,27 @@ export default async function HerstellerPage({ params }: Props) {
           Für diesen Hersteller ist noch kein Modell veröffentlicht.
         </p>
       ) : (
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {eintrag.models.map((modell) => (
             <li key={modell.id}>
               <Link
                 href={`/katalog/${eintrag.slug}/${modell.slug}`}
-                className="block rounded-lg border border-line bg-surface-2 p-5 transition-colors hover:border-line-interactive"
+                className="group block rounded-lg border border-line bg-surface-2 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-line-interactive hover:shadow-raised"
               >
-                <h3 className="text-base font-semibold text-ink">{modell.name}</h3>
-                <p className="mt-2 text-sm text-ink-muted">
-                  {modell._count.generations === 0
-                    ? 'Noch keine veröffentlichte Generation'
-                    : `${modell._count.generations} ${modell._count.generations === 1 ? 'Generation' : 'Generationen'}`}
-                </p>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold text-ink">{modell.name}</h3>
+                  <span className="text-ink-subtle transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true">→</span>
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="inline-flex h-5 items-center rounded bg-accent/10 px-2 text-xs font-medium text-accent">
+                    {modell._count.generations === 0 ? '—' : modell._count.generations}
+                  </span>
+                  <span className="text-sm text-ink-muted">
+                    {modell._count.generations === 0
+                      ? 'Noch keine veröffentlichte Generation'
+                      : modell._count.generations === 1 ? 'Generation' : 'Generationen'}
+                  </span>
+                </div>
               </Link>
             </li>
           ))}
