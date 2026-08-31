@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <circle cx="50" cy="50" r="48" stroke="#fff" stroke-width="4"/>
+  <circle cx="50" cy="50" r="44" stroke="#fff" stroke-width="1.5"/>
+  <path d="M50 6 L50 50 L94 50 A44 44 0 0 0 50 6Z" fill="#0066B1"/>
+  <path d="M50 94 L50 50 L6 50 A44 44 0 0 0 50 94Z" fill="#0066B1"/>
+  <path d="M50 6 L50 50 L6 50 A44 44 0 0 1 50 6Z" fill="#fff"/>
+  <path d="M50 94 L50 50 L94 50 A44 44 0 0 1 50 94Z" fill="#fff"/>
+  <text x="50" y="22" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="10" fill="#fff">B M W</text>
+</svg>
