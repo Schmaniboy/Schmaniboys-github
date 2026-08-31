@@ -95,6 +95,26 @@ export const AVAILABILITY_LABELS: Record<AvailabilityKind, AvailabilityDescripto
   },
 };
 
+export const PriceSourceType = {
+  PRICE_LIST: 'PRICE_LIST',
+  CONFIGURATOR: 'CONFIGURATOR',
+  DEALER_QUOTE: 'DEALER_QUOTE',
+  PRESS: 'PRESS',
+  COMMUNITY: 'COMMUNITY',
+  OTHER: 'OTHER',
+} as const;
+
+export type PriceSourceType = (typeof PriceSourceType)[keyof typeof PriceSourceType];
+
+export const PRICE_SOURCE_LABELS: Record<PriceSourceType, string> = {
+  PRICE_LIST: 'Preisliste',
+  CONFIGURATOR: 'Konfigurator',
+  DEALER_QUOTE: 'Händler',
+  PRESS: 'Fachpresse',
+  COMMUNITY: 'Community',
+  OTHER: 'Sonstiges',
+};
+
 /** Gilt diese Ausstattung hier als ohne Aufpreis enthalten? */
 export function istSerie(kind: AvailabilityKind): boolean {
   return kind === AvailabilityKind.STANDARD;

@@ -349,6 +349,10 @@ model Manufacturer {
   /// Land des Stammsitzes. Optional -- nicht immer eindeutig.
   country String?
 
+  /// Pfad oder URL des Herstellerlogos. Wird ueber die Bildverwaltung
+  /// hochgeladen; Urheberrechte klaert der Redakteur.
+  logoUrl String?
+
   /// Weltweite Herstellerkennungen aus der VIN (erste drei Zeichen).
   /// Das ist der einzige Teil der VIN, der ohne Zusatzdaten belegbar ist.
   wmiCodes String[] @default([])
@@ -440,10 +444,11 @@ model Generation {
   modelYears      ModelYear[]
   specialEditions SpecialEdition[]
   paintOffers     PaintColorAvailability[]
-  wheelOffers     WheelOptionAvailability[]
-  hsnTsnEntries   HsnTsnEntry[]
-  userVehicles    UserVehicle[]
-  images          CatalogImage[]
+  wheelOffers            WheelOptionAvailability[]
+  hsnTsnEntries          HsnTsnEntry[]
+  userVehicles           UserVehicle[]
+  images                 CatalogImage[]
+  equipmentRequirements  EquipmentRequirement[]
 
   dataQuality    DataQuality @default(UNVERIFIED)
   lastVerifiedAt DateTime?
@@ -800,6 +805,8 @@ model OptionalEquipment {
   editionEntries SpecialEditionItem[]
   ownedBy        UserVehicleEquipment[]
   images         CatalogImage[]
+  requires       EquipmentRequirement[] @relation("requiresOther")
+  requiredBy     EquipmentRequirement[] @relation("requiredBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -867,6 +874,13 @@ model OptionAvailability {
   surchargeCurrency String?   @default("EUR")
   surchargeAsOf     DateTime?
 
+  /// Quellenangabe fuer den Preis. Ohne Quelle wird die Angabe als
+  /// "Quelle nicht verifiziert" angezeigt.
+  surchargeSourceType PriceSourceType?
+  surchargeSourceRef  String?
+  surchargeSourceDate DateTime?
+  surchargeSourceNote String?
+
   note String?
 
   dataQuality    DataQuality @default(UNVERIFIED)
@@ -929,6 +943,35 @@ model EquipmentPackageItem {
   optional Boolean @default(false)
 
   @@unique([packageId, optionId])
+}
+
+/// Abhaengigkeit zwischen Ausstattungen: "A erfordert B" oder
+/// "A schliesst B aus". Beim Gebrauchtkauf relevant, weil ein Fahrzeug mit A
+/// ohne B auf eine Nachruestung oder Fehlkonfiguration hindeuten kann.
+model EquipmentRequirement {
+  id String @id @default(cuid())
+
+  /// Die Ausstattung, die die Bedingung traegt.
+  optionId String
+  option   OptionalEquipment @relation("requiresOther", fields: [optionId], references: [id], onDelete: Cascade)
+
+  /// Die Ausstattung, die benoetigt oder ausgeschlossen wird.
+  requiredOptionId String
+  requiredOption   OptionalEquipment @relation("requiredBy", fields: [requiredOptionId], references: [id], onDelete: Cascade)
+
+  kind RequirementKind @default(REQUIRES)
+
+  /// Optionaler Hinweis, z. B. "nur in Verbindung mit M Sportpaket".
+  note String?
+
+  generationId String?
+  generation   Generation? @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([optionId, requiredOptionId, generationId])
+  @@index([requiredOptionId])
 }
 
 // ---------------------------------------------------------------------------
@@ -1896,6 +1939,31 @@ enum AvailabilityKind {
   SPECIAL_EDITION_ONLY
   /// Marktabhaengig. In manchen Laendern Serie, in anderen nicht erhaeltlich.
   MARKET_SPECIFIC
+}
+
+/// Art der Abhaengigkeit zwischen zwei Ausstattungen.
+enum RequirementKind {
+  /// A kann nur bestellt werden, wenn B auch bestellt wird.
+  REQUIRES
+  /// A und B schliessen sich gegenseitig aus.
+  EXCLUDES
+}
+
+/// Herkunft einer Preisangabe. Ohne Angabe zeigt die Oberflaeche
+/// "Quelle nicht verifiziert".
+enum PriceSourceType {
+  /// Offizielle Preisliste des Herstellers.
+  PRICE_LIST
+  /// Konfigurator-Auszug (Screenshot, PDF).
+  CONFIGURATOR
+  /// Haendlerangebot oder Rechnung.
+  DEALER_QUOTE
+  /// Fachmedien-Bericht mit Preisnennung.
+  PRESS
+  /// Nutzerbeitrag in einem Forum, Wiki o. ae.
+  COMMUNITY
+  /// Andere belegbare Quelle.
+  OTHER
 }
 
 /// Art einer Lackierung. Bestimmt Aufpreis und Aufbereitungsaufwand.

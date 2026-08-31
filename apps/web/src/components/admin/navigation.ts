@@ -8,4 +8,5 @@ export const ADMIN_NAVIGATION: readonly DashboardNavItem[] = [
   { href: '/admin/katalog', label: 'Katalog' },
   { href: '/admin/datenqualitaet', label: 'Datenqualität' },
   { href: '/admin/protokoll', label: 'Protokoll' },
+  { href: '/admin/einstellungen', label: 'Einstellungen' },
 ];

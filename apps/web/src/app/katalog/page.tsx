@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -59,7 +60,17 @@ export default async function KatalogPage() {
                 className="group flex items-center gap-4 rounded-lg border border-line bg-surface-2 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-line-interactive hover:shadow-raised"
               >
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent/15 to-accent/5 text-lg font-bold text-accent transition-colors group-hover:from-accent/25 group-hover:to-accent/10">
-                  {eintrag.name.charAt(0)}
+                  {eintrag.logoUrl ? (
+                    <Image
+                      src={eintrag.logoUrl}
+                      alt={`${eintrag.name} Logo`}
+                      width={36}
+                      height={36}
+                      className="h-9 w-9 object-contain"
+                    />
+                  ) : (
+                    eintrag.name.charAt(0)
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">

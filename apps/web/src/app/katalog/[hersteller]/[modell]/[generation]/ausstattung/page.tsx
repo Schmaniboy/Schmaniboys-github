@@ -3,11 +3,13 @@ import type { Metadata } from 'next';
 
 import {
   AVAILABILITY_LABELS,
+  PRICE_SOURCE_LABELS,
   RARITY_LABELS,
   RELEVANCE_LABELS,
   formatBuildPeriod,
   type ConfidenceLevel,
   type EvidenceType,
+  type PriceSourceType,
 } from '@ap/core';
 import { findGenerationEquipment } from '@ap/db';
 
@@ -250,22 +252,60 @@ export default async function AusstattungPage({ params }: Props) {
 
                               const art = AVAILABILITY_LABELS[zeile.kind];
 
+                              const hatPreis = zeile.surchargeCents != null && zeile.surchargeCents > 0;
+                              const preisFormatiert = hatPreis
+                                ? new Intl.NumberFormat('de-DE', {
+                                    style: 'currency',
+                                    currency: zeile.surchargeCurrency ?? 'EUR',
+                                  }).format(zeile.surchargeCents! / 100)
+                                : null;
+                              const quellenTyp = zeile.surchargeSourceType as PriceSourceType | null;
+
                               return (
-                                <li key={zeile.id} className="flex flex-wrap items-baseline gap-2 text-sm">
-                                  <Badge tone={art.tone} title={art.explanation}>
-                                    {art.label}
-                                  </Badge>
-                                  <DataQualityMark
-                                    quality={zeile.dataQuality}
-                                    lastVerifiedAt={zeile.lastVerifiedAt}
-                                  />
-                                  <span className="text-ink-muted">
-                                    {einschraenkungen.length > 0
-                                      ? einschraenkungen.join(' · ')
-                                      : 'in der ganzen Baureihe'}
-                                  </span>
-                                  {zeile.note ? (
-                                    <span className="text-ink-subtle">— {zeile.note}</span>
+                                <li key={zeile.id} className="space-y-1 text-sm">
+                                  <div className="flex flex-wrap items-baseline gap-2">
+                                    <Badge tone={art.tone} title={art.explanation}>
+                                      {art.label}
+                                    </Badge>
+                                    <DataQualityMark
+                                      quality={zeile.dataQuality}
+                                      lastVerifiedAt={zeile.lastVerifiedAt}
+                                    />
+                                    <span className="text-ink-muted">
+                                      {einschraenkungen.length > 0
+                                        ? einschraenkungen.join(' · ')
+                                        : 'in der ganzen Baureihe'}
+                                    </span>
+                                    {zeile.note ? (
+                                      <span className="text-ink-subtle">— {zeile.note}</span>
+                                    ) : null}
+                                  </div>
+                                  {hatPreis ? (
+                                    <div className="ml-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-xs">
+                                      <span className="font-semibold text-accent">
+                                        Aufpreis {preisFormatiert}
+                                      </span>
+                                      {zeile.surchargeAsOf ? (
+                                        <span className="text-ink-subtle">
+                                          (Stand{' '}
+                                          {new Date(zeile.surchargeAsOf).toLocaleDateString('de-DE', {
+                                            month: 'long',
+                                            year: 'numeric',
+                                          })}
+                                          )
+                                        </span>
+                                      ) : null}
+                                      {quellenTyp ? (
+                                        <span className="text-ink-subtle">
+                                          Quelle: {PRICE_SOURCE_LABELS[quellenTyp]}
+                                          {zeile.surchargeSourceRef ? ` — ${zeile.surchargeSourceRef}` : ''}
+                                        </span>
+                                      ) : (
+                                        <span className="text-ink-subtle italic">
+                                          Quelle nicht verifiziert
+                                        </span>
+                                      )}
+                                    </div>
                                   ) : null}
                                 </li>
                               );
@@ -322,6 +362,17 @@ export default async function AusstattungPage({ params }: Props) {
           })
         )}
       </section>
+
+      <aside className="mt-16 border-t border-line pt-6">
+        <p className="text-xs leading-relaxed text-ink-subtle">
+          <strong>Hinweis zu Preisangaben:</strong> Alle genannten Aufpreise sind
+          historische Listenpreise zum Zeitpunkt der Bestellung und dienen
+          ausschließlich der Information. Sie stellen kein aktuelles Angebot dar.
+          Preise können je nach Markt, Modelljahr und Händler abgewichen haben.
+          {' '}Angaben ohne Quellennachweis sind als „Quelle nicht verifiziert"
+          gekennzeichnet und erheben keinen Anspruch auf Richtigkeit.
+        </p>
+      </aside>
     </div>
   );
 }
