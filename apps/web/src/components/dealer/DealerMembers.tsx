@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { useDialog } from '@/components/ui/Dialog';
 import { useToast } from '@/components/ui/Toast';
 
 /**
@@ -36,6 +37,7 @@ export function DealerMembers({
   const [mitglieder, setMitglieder] = useState(anfaenglich);
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
+  const { bestaetigen } = useDialog();
   const { zeigen } = useToast();
 
   useEffect(() => {
@@ -104,9 +106,11 @@ export function DealerMembers({
   }
 
   async function entfernen(userId: string, name: string) {
-    if (!window.confirm(`„${name}" verliert damit den Zugang zu diesem Betrieb. Fortfahren?`)) {
-      return;
-    }
+    const ok = await bestaetigen(
+      `„${name}" verliert damit den Zugang zu diesem Betrieb. Fortfahren?`,
+      { gefahr: true },
+    );
+    if (!ok) return;
     setLaeuft(true);
     try {
       const antwort = await fetch(

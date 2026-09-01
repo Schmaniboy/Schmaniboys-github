@@ -1,9 +1,11 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { LISTING_STATUS_LABELS, type ListingStatus } from '@ap/core/marketplace/status';
 
+import { useDialog } from '@/components/ui/Dialog';
 import { useToast } from '@/components/ui/Toast';
 
 /**
@@ -33,8 +35,10 @@ export function ListingActions({
   listingId: string;
   moegliche: ListingStatus[];
 }) {
+  const router = useRouter();
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState<ListingStatus | null>(null);
+  const { bestaetigen } = useDialog();
   const { zeigen } = useToast();
 
   useEffect(() => {
@@ -47,7 +51,8 @@ export function ListingActions({
         status === 'DELETED'
           ? 'Die Anzeige wird gelöscht und kommt nicht zurück. Fortfahren?'
           : 'Die Anzeige wird als verkauft markiert. Sie lässt sich danach nicht wieder online stellen. Fortfahren?';
-      if (!window.confirm(frage)) return;
+      const ok = await bestaetigen(frage, { gefahr: status === 'DELETED' });
+      if (!ok) return;
     }
 
     setLaeuft(status);
@@ -59,7 +64,7 @@ export function ListingActions({
       });
       if (antwort.ok) {
         zeigen('Status geändert.', { ton: 'positive' });
-        window.location.reload();
+        router.refresh();
         return;
       }
       const inhalt = (await antwort.json()) as { error?: { message?: string } };

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { useDialog } from '@/components/ui/Dialog';
 import { useToast } from '@/components/ui/Toast';
 
 export function ModerationButtons({
@@ -20,6 +21,7 @@ export function ModerationButtons({
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
   const [zustand, setZustand] = useState(verborgen);
+  const { eingabe } = useDialog();
   const { zeigen } = useToast();
 
   useEffect(() => {
@@ -32,9 +34,9 @@ export function ModerationButtons({
 
   async function handeln() {
     const aktion = zustand ? 'RESTORE' : 'HIDE';
-    const grund = window.prompt(
-      `${aktion === 'HIDE' ? 'Ausblenden' : 'Wieder freigeben'}: „${bezeichnung}"\n\n` +
-        'Bitte einen Grund angeben. Er bleibt im Protokoll stehen.',
+    const grund = await eingabe(
+      'Bitte einen Grund angeben. Er bleibt im Protokoll stehen.',
+      { titel: `${aktion === 'HIDE' ? 'Ausblenden' : 'Wieder freigeben'}: „${bezeichnung}"` },
     );
     if (grund === null) return;
 

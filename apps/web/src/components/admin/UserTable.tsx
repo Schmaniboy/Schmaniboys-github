@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { useDialog } from '@/components/ui/Dialog';
 import { useToast } from '@/components/ui/Toast';
 
 /**
@@ -37,6 +38,7 @@ export function UserTable({
   const [zeilen, setZeilen] = useState(anfaenglich);
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
+  const { eingabe } = useDialog();
   const { zeigen } = useToast();
 
   useEffect(() => {
@@ -48,8 +50,9 @@ export function UserTable({
     daten: { role?: string; status?: string },
     frage: string,
   ) {
-    const grund = window.prompt(
-      `${frage}\n\nBitte einen Grund angeben. Er bleibt im Protokoll stehen.`,
+    const grund = await eingabe(
+      'Bitte einen Grund angeben. Er bleibt im Protokoll stehen.',
+      { titel: frage },
     );
     if (grund === null) return;
 

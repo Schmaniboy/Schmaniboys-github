@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { MAX_BILDER_JE_ANZEIGE, MAX_UPLOAD_BYTES } from '@ap/core/marketplace/images';
 
+import { useDialog } from '@/components/ui/Dialog';
 import { useToast } from '@/components/ui/Toast';
 
 
@@ -35,6 +36,7 @@ export function ListingImageManager({
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
   const dateiFeld = useRef<HTMLInputElement>(null);
+  const { bestaetigen } = useDialog();
   const { zeigen } = useToast();
 
   useEffect(() => {
@@ -85,7 +87,8 @@ export function ListingImageManager({
   }
 
   async function entfernen(bildId: string) {
-    if (!window.confirm('Dieses Bild wird gelöscht. Fortfahren?')) return;
+    const ok = await bestaetigen('Dieses Bild wird gelöscht. Fortfahren?', { gefahr: true });
+    if (!ok) return;
     setLaeuft(true);
     try {
       const antwort = await fetch(

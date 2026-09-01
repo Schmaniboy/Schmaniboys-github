@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -46,6 +47,7 @@ export function VehiclePicker({
     trimLineId: string | null;
   };
 }) {
+  const router = useRouter();
   const [hersteller, setHersteller] = useState(vorauswahl.manufacturerId ?? '');
   const [modell, setModell] = useState(vorauswahl.modelId ?? '');
   const [generation, setGeneration] = useState(vorauswahl.generationId ?? '');
@@ -103,7 +105,7 @@ export function VehiclePicker({
       });
 
       if (antwort.ok) {
-        window.location.reload();
+        router.refresh();
         return;
       }
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -13,6 +14,7 @@ import { useToast } from '@/components/ui/Toast';
  * unveraenderten Entwurf sind das null Tokens.
  */
 export function GenerateButton({ draftId, preis }: { draftId: string; preis: number }) {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const { zeigen } = useToast();
 
@@ -29,7 +31,7 @@ export function GenerateButton({ draftId, preis }: { draftId: string; preis: num
       };
 
       if (antwort.ok) {
-        window.location.reload();
+        router.refresh();
         return;
       }
 
