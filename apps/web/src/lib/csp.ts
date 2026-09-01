@@ -50,7 +50,11 @@
 export const NONCE_PREFIXES = [
   '/anmelden',
   '/registrieren',
+  '/passwort-vergessen',
+  '/passwort-neu',
+  '/email-bestaetigen',
   '/konto',
+  '/verkaufen',
   '/haendler',
   '/admin',
   '/api',
