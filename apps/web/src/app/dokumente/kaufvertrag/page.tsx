@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { KaufvertragFormular } from '@/components/dokumente/KaufvertragFormular';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 
 export const metadata: Metadata = {
   title: 'Kaufvertrag — Vorlage',
@@ -10,9 +11,12 @@ export const metadata: Metadata = {
 
 export default function KaufvertragPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <div className="accent-rule mb-6" />
-      <p className="eyebrow mb-2">Dokumente</p>
+    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 print:py-4">
+      <div className="print:hidden">
+        <Breadcrumbs items={[{ href: '/dokumente', label: 'Dokumente' }, { label: 'Kaufvertrag' }]} />
+      </div>
+      <div className="accent-rule mb-6 print:hidden" />
+      <p className="eyebrow mb-2 print:hidden">Dokumente</p>
       <h1 className="text-3xl font-semibold tracking-tight text-ink">
         Kaufvertrag
       </h1>
