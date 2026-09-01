@@ -7,11 +7,17 @@ export const metadata: Metadata = {
 
 export default function AgbPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
-      <h1 className="text-2xl font-semibold text-ink">
+    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+      <div className="accent-rule mb-6" />
+      <p className="eyebrow mb-2">Rechtliches</p>
+      <h1 className="text-3xl font-semibold tracking-tight text-ink">
         Allgemeine Geschäftsbedingungen
       </h1>
-      <div className="mt-6 rounded-lg border border-line bg-surface-2 p-6">
+      <p className="mt-3 text-base leading-relaxed text-ink-muted">
+        Nutzungsbedingungen der Plattform.
+      </p>
+
+      <div className="mt-8 rounded-lg border border-line bg-surface-2 p-6">
         <p className="text-sm leading-relaxed text-ink-muted">
           Die AGB werden vom Betreiber erstellt und hier veröffentlicht, bevor
           entgeltliche Leistungen angeboten werden. Bis dahin ist diese Seite
