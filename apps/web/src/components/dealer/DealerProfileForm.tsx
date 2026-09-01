@@ -120,7 +120,7 @@ export function DealerProfileForm({
         ) : null}
       </div>
 
-      <form onSubmit={absenden} method="post" className="space-y-4">
+      <form onSubmit={absenden} method="post" className="space-y-4" noValidate>
         <InputField name="name" label="Name des Betriebs" defaultValue={werte.name} required disabled={schreibgeschuetzt} />
 
         <TextareaField
