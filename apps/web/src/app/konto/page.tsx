@@ -79,7 +79,7 @@ export default async function AccountPage() {
       bezeichnung: 'Benachrichtigungen',
       wert: `${benachrichtigungen} ungelesen`,
       akzent: true,
-      href: '#',
+      href: '/konto/benachrichtigungen',
     });
   }
 

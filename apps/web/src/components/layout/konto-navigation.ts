@@ -15,4 +15,5 @@ export const KONTO_NAVIGATION: readonly DashboardNavItem[] = [
   { href: '/konto/guthaben', label: 'Guthaben' },
   { href: '/konto/rechnungen', label: 'Rechnungen' },
   { href: '/konto/nachrichten', label: 'Nachrichten' },
+  { href: '/konto/benachrichtigungen', label: 'Benachrichtigungen' },
 ];
