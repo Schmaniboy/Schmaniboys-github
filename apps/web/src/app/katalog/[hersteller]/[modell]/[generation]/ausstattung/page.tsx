@@ -369,7 +369,7 @@ export default async function AusstattungPage({ params }: Props) {
           historische Listenpreise zum Zeitpunkt der Bestellung und dienen
           ausschließlich der Information. Sie stellen kein aktuelles Angebot dar.
           Preise können je nach Markt, Modelljahr und Händler abgewichen haben.
-          {' '}Angaben ohne Quellennachweis sind als „Quelle nicht verifiziert"
+          {' '}Angaben ohne Quellennachweis sind als &bdquo;Quelle nicht verifiziert&ldquo;
           gekennzeichnet und erheben keinen Anspruch auf Richtigkeit.
         </p>
       </aside>
