@@ -215,6 +215,13 @@ export function NotificationBell() {
               </ul>
             )}
           </div>
+          <Link
+            href="/konto/benachrichtigungen"
+            onClick={() => setOffen(false)}
+            className="block border-t border-line px-4 py-2.5 text-center text-xs font-medium text-accent hover:bg-surface-2 hover:text-accent-strong"
+          >
+            Alle Benachrichtigungen anzeigen
+          </Link>
         </div>
       ) : null}
     </div>
