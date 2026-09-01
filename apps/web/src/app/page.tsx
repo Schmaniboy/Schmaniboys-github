@@ -1,6 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { catalogStats } from '@ap/db';
+
 import { LinkButton } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
 import { env } from '@/lib/env';
@@ -50,7 +52,10 @@ const BEREICHE = [
   },
 ];
 
-export default function HomePage() {
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const stats = await catalogStats();
   const basis = env.APP_URL.replace(/\/$/, '');
 
   const jsonLd = {
@@ -125,7 +130,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
         <div className="mb-10">
           <p className="eyebrow mb-2">Was Sie hier tun können</p>
-          <h2 className="text-2xl font-semibold text-ink sm:text-3xl">Sechs Wege in die Daten</h2>
+          <h2 className="text-2xl font-semibold text-ink sm:text-3xl">Sieben Wege in die Daten</h2>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -185,10 +190,10 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
             {[
-              { zahl: '35', label: 'Hersteller' },
-              { zahl: '160+', label: 'Modelle' },
-              { zahl: '190+', label: 'Generationen' },
-              { zahl: '100%', label: 'Quellenbelegt' },
+              { zahl: String(stats.hersteller), label: 'Hersteller' },
+              { zahl: String(stats.modelle), label: 'Modelle' },
+              { zahl: String(stats.generationen), label: 'Generationen' },
+              { zahl: String(stats.quellen), label: 'Quellenangaben' },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="tabular text-3xl font-bold text-accent sm:text-4xl">{stat.zahl}</p>

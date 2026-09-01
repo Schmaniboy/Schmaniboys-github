@@ -767,6 +767,16 @@ export async function searchPublishedCatalog(query: string, limit = 20) {
   return { manufacturers, models };
 }
 
+export async function catalogStats() {
+  const [hersteller, modelle, generationen, quellen] = await Promise.all([
+    prisma.manufacturer.count({ where: NUR_VEROEFFENTLICHT }),
+    prisma.model.count({ where: NUR_VEROEFFENTLICHT }),
+    prisma.generation.count({ where: NUR_VEROEFFENTLICHT }),
+    prisma.source.count(),
+  ]);
+  return { hersteller, modelle, generationen, quellen };
+}
+
 /** Wirft, wenn ein Fremdschluessel ins Leere zeigt -- mit klarer Meldung. */
 export async function assertExists(
   subject: CatalogSubject,
