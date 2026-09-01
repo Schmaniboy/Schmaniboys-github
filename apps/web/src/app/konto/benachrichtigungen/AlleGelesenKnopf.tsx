@@ -1,22 +1,34 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 
 export function AlleGelesenKnopf() {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [busy, setBusy] = useState(false);
+  const { zeigen } = useToast();
 
-  function alleGelesen() {
-    fetch('/api/benachrichtigungen', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: null }),
-    })
-      .then(() => startTransition(() => router.refresh()))
-      .catch(() => {});
+  async function alleGelesen() {
+    setBusy(true);
+    try {
+      const antwort = await fetch('/api/benachrichtigungen', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: null }),
+      });
+      if (antwort.ok) {
+        router.refresh();
+      } else {
+        zeigen('Das hat gerade nicht geklappt.', { ton: 'critical' });
+      }
+    } catch {
+      zeigen('Der Server war nicht erreichbar.', { ton: 'critical' });
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -24,9 +36,9 @@ export function AlleGelesenKnopf() {
       variant="secondary"
       size="sm"
       onClick={alleGelesen}
-      disabled={isPending}
+      busy={busy}
     >
-      {isPending ? 'Wird aktualisiert…' : 'Alle als gelesen markieren'}
+      Alle als gelesen markieren
     </Button>
   );
 }

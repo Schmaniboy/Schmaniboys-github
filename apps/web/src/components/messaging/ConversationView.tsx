@@ -245,7 +245,7 @@ export function ConversationView({
           Dieses Gespräch ist geschlossen. Es lässt sich weiter lesen, aber nicht fortsetzen.
         </p>
       ) : (
-        <form onSubmit={senden} method="post" className="space-y-2">
+        <form onSubmit={senden} method="post" className="space-y-2" noValidate>
           <label className="block">
             <span className="sr-only">Nachricht</span>
             <textarea

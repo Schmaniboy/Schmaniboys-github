@@ -95,7 +95,7 @@ export function FahrzeugAnlegen({
         description="Nur die Bezeichnung ist nötig. Baureihe, Motor und Ausstattung lassen sich danach über den Katalog zuordnen."
       />
       <CardBody>
-        <form onSubmit={absenden} className="space-y-4">
+        <form onSubmit={absenden} className="space-y-4" noValidate>
           <InputField
             label="Bezeichnung"
             name="label"

@@ -160,6 +160,7 @@ export function DealerMembers({
                   type="button"
                   onClick={() => entfernen(person.id, person.displayName)}
                   disabled={!bereit || laeuft || binIch}
+                  aria-label={`${person.displayName} entfernen`}
                   className="rounded-md border border-caution/50 px-3 py-1.5 text-sm text-caution transition-colors hover:bg-caution/10 disabled:opacity-40"
                 >
                   Entfernen
@@ -170,7 +171,7 @@ export function DealerMembers({
         })}
       </ul>
 
-      <form onSubmit={aufnehmen} method="post" className="space-y-3 border-t border-line/40 pt-4">
+      <form onSubmit={aufnehmen} method="post" className="space-y-3 border-t border-line/40 pt-4" noValidate>
         <h3 className="text-sm font-semibold text-ink">Person aufnehmen</h3>
         <p className="text-sm leading-relaxed text-ink-muted">
           Die Person muss bereits ein Konto haben. Konten für andere anzulegen ist nicht

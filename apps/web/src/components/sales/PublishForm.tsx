@@ -76,7 +76,7 @@ export function PublishForm({
   }
 
   return (
-    <form onSubmit={absenden} method="post" className="space-y-4">
+    <form onSubmit={absenden} method="post" className="space-y-4" noValidate>
       <InputField
         label="Titel der Anzeige"
         name="title"

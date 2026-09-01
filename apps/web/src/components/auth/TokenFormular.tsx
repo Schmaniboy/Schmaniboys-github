@@ -109,6 +109,7 @@ export function TokenFormular({ modus, token }: { modus: Modus; token?: string }
 
   return (
     <form
+      noValidate
       onSubmit={(ereignis: FormEvent<HTMLFormElement>) => {
         ereignis.preventDefault();
         const formular = new FormData(ereignis.currentTarget);

@@ -73,7 +73,7 @@ export function ListingEditForm({
   }
 
   return (
-    <form onSubmit={absenden} method="post" className="space-y-4">
+    <form onSubmit={absenden} method="post" className="space-y-4" noValidate>
       <InputField
         label="Titel"
         name="title"

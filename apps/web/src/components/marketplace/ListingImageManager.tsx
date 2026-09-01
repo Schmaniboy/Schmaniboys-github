@@ -118,6 +118,7 @@ export function ListingImageManager({
     neu.splice(ziel, 0, bewegt);
     setBilder(neu);
 
+    setLaeuft(true);
     try {
       await fetch(`/api/anzeigen/${listingId}/bilder`, {
         method: 'PATCH',
@@ -126,6 +127,8 @@ export function ListingImageManager({
       });
     } catch {
       zeigen('Die Reihenfolge ließ sich nicht speichern.', { ton: 'critical' });
+    } finally {
+      setLaeuft(false);
     }
   }
 
@@ -158,7 +161,7 @@ export function ListingImageManager({
                   <button
                     type="button"
                     onClick={() => verschieben(index, -1)}
-                    disabled={!bereit || index === 0}
+                    disabled={!bereit || laeuft || index === 0}
                     aria-label="Nach vorne"
                     className="rounded border border-line px-2 py-1 text-xs text-ink-muted disabled:opacity-40"
                   >
@@ -167,7 +170,7 @@ export function ListingImageManager({
                   <button
                     type="button"
                     onClick={() => verschieben(index, 1)}
-                    disabled={!bereit || index === bilder.length - 1}
+                    disabled={!bereit || laeuft || index === bilder.length - 1}
                     aria-label="Nach hinten"
                     className="rounded border border-line px-2 py-1 text-xs text-ink-muted disabled:opacity-40"
                   >
@@ -196,6 +199,7 @@ export function ListingImageManager({
           type="file"
           accept="image/jpeg,image/png,image/webp"
           multiple
+          aria-label="Bilder hochladen"
           disabled={!bereit || laeuft || bilder.length >= MAX_BILDER_JE_ANZEIGE}
           onChange={(ereignis) => hochladen(ereignis.currentTarget.files)}
           className="block text-sm text-ink-muted file:mr-3 file:rounded-md file:border file:border-line file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:text-ink"
