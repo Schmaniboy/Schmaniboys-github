@@ -6,6 +6,7 @@ import type { FormEvent } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { InputField } from '@/components/ui/Field';
+import { PasswordField } from '@/components/ui/PasswordField';
 
 /**
  * Die drei Formulare rund um E-Mail und Passwort.
@@ -129,10 +130,9 @@ export function TokenFormular({ modus, token }: { modus: Modus; token?: string }
           error={fehler ?? undefined}
         />
       ) : (
-        <InputField
+        <PasswordField
           label="Neues Passwort"
           name="passwort"
-          type="password"
           required
           autoComplete="new-password"
           minLength={12}

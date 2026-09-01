@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { InputField } from '@/components/ui/Field';
+import { PasswordField } from '@/components/ui/PasswordField';
 
 /**
  * Formular fuer Anmeldung und Registrierung.
@@ -114,10 +115,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
         error={issues.email?.[0]}
       />
 
-      <InputField
+      <PasswordField
         label="Passwort"
         name="password"
-        type="password"
         autoComplete={isRegistration ? 'new-password' : 'current-password'}
         required
         hint={isRegistration ? 'Mindestens 12 Zeichen. Länge zählt mehr als Sonderzeichen.' : undefined}

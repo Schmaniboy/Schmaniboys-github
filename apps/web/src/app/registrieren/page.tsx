@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'Konto erstellen' };
 
 export default function RegisterPage() {
   return (
-    <div className="mx-auto w-full max-w-md px-4 py-16">
+    <div className="mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-md flex-col justify-center px-4 py-8">
       <div className="accent-rule mb-6" />
       <h1 className="text-2xl font-semibold text-ink">Konto erstellen</h1>
       <p className="mt-2 text-sm text-ink-muted">
