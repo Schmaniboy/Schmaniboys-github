@@ -8,6 +8,7 @@ import { DashboardShell } from '@/components/layout/DashboardShell';
 import { KONTO_NAVIGATION } from '@/components/layout/konto-navigation';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { DataGap } from '@/components/ui/DataGap';
+import { Pagination } from '@/components/ui/Pagination';
 import { Table, Td, Th } from '@/components/ui/Table';
 import { TokenPurchase } from '@/components/billing/TokenPurchase';
 import { paymentProvider, TAX_RATE_BASIS_POINTS } from '@/lib/billing-deps';
@@ -26,14 +27,23 @@ const TYP_BEZEICHNUNG: Record<string, string> = {
   ADJUSTMENT: 'Korrektur',
 };
 
-export default async function GuthabenPage() {
+interface Props {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+const BUCHUNGEN_PRO_SEITE = 25;
+
+export default async function GuthabenPage({ searchParams }: Props) {
   const session = await getCurrentSession();
   if (!session) redirect('/anmelden');
 
+  const roh = await searchParams;
+  const seite = Number(typeof roh.seite === 'string' ? roh.seite : 0) || 0;
+
   const konto = await walletRepository.ensureWallet(session.principal.userId);
   const historie = await walletRepository.listTransactions(session.principal.userId, {
-    limit: 25,
-    offset: 0,
+    limit: BUCHUNGEN_PRO_SEITE,
+    offset: seite * BUCHUNGEN_PRO_SEITE,
   });
 
   const steuersatz = TAX_RATE_BASIS_POINTS;
@@ -144,6 +154,12 @@ export default async function GuthabenPage() {
               </tbody>
             </Table>
           )}
+          <Pagination
+            pfad="/konto/guthaben"
+            seite={seite}
+            gesamt={historie.total}
+            seitengroesse={BUCHUNGEN_PRO_SEITE}
+          />
         </CardBody>
       </Card>
     </DashboardShell>

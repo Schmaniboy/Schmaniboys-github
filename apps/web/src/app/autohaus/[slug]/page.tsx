@@ -8,12 +8,14 @@ import { findPublicDealer, searchListings } from '@ap/db';
 import { ListingCard } from '@/components/marketplace/ListingCard';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
+import { Pagination } from '@/components/ui/Pagination';
 import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 /**
@@ -45,14 +47,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function AutohausPage({ params }: Props) {
+export default async function AutohausPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const haendler = await findPublicDealer(slug);
   if (!haendler) notFound();
 
+  const roh = await searchParams;
+  const seite = Number(typeof roh.seite === 'string' ? roh.seite : 0) || 0;
+
   const jetzt = systemClock.now();
   const angebote = await searchListings(
-    { sortierung: 'neueste', seite: 0, dealerId: haendler.id },
+    { sortierung: 'neueste', seite, dealerId: haendler.id },
     jetzt,
   );
 
@@ -181,11 +186,19 @@ export default async function AutohausPage({ params }: Props) {
           </Link>
         </p>
       ) : (
-        <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {angebote.treffer.map((anzeige) => (
-            <ListingCard key={anzeige.id} anzeige={anzeige} />
-          ))}
-        </div>
+        <>
+          <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {angebote.treffer.map((anzeige) => (
+              <ListingCard key={anzeige.id} anzeige={anzeige} />
+            ))}
+          </div>
+          <Pagination
+            pfad={`/autohaus/${slug}`}
+            seite={angebote.seite}
+            gesamt={angebote.gesamt}
+            seitengroesse={angebote.seitengroesse}
+          />
+        </>
       )}
     </div>
   );
