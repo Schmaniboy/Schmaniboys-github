@@ -15,21 +15,21 @@ const DOKUMENTE = [
     beschreibung:
       'Vorlage für einen privaten Gebrauchtwagenverkauf. Enthält Angaben zu Verkäufer, Käufer, Fahrzeug und Zahlungsbedingungen.',
     href: '/dokumente/kaufvertrag',
-    verfuegbar: false,
+    verfuegbar: true,
   },
   {
     titel: 'Übergabeprotokoll',
     beschreibung:
       'Dokumentiert den Zustand des Fahrzeugs bei Übergabe: Mängel, Kratzer, Zubehör, Kilometerstand, Schlüssel.',
     href: '/dokumente/uebergabeprotokoll',
-    verfuegbar: false,
+    verfuegbar: true,
   },
   {
     titel: 'Käufer-Checkliste',
     beschreibung:
       'Worauf vor dem Kauf eines Gebrauchtwagens zu achten ist. Prüfpunkte für Probefahrt, Papiere, Zustand.',
     href: '/dokumente/kaeufer-checkliste',
-    verfuegbar: false,
+    verfuegbar: true,
   },
   {
     titel: 'Fahrzeugbericht',
