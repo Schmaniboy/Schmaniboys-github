@@ -60,7 +60,7 @@ export function MarketplaceFilters({ werte }: { werte: Record<string, string | u
       <div className="flex flex-wrap gap-2">
         <button
           type="submit"
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent transition-colors hover:bg-accent-strong"
+          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-ink transition-colors hover:bg-accent-strong"
         >
           Anwenden
         </button>

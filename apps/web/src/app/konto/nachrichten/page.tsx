@@ -63,7 +63,7 @@ export default async function NachrichtenPage() {
                     <p className="text-sm font-medium text-ink">
                       {gegenueber.displayName}
                       {gespraech.ungelesen > 0 ? (
-                        <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-xs text-on-accent">
+                        <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-xs text-accent-ink">
                           {gespraech.ungelesen}
                         </span>
                       ) : null}

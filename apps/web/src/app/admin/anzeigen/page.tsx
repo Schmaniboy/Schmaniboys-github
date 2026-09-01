@@ -54,7 +54,7 @@ export default async function AdminAnzeigenPage({ searchParams }: Props) {
             </select>
             <button
               type="submit"
-              className="h-11 rounded-md bg-accent px-4 text-base sm:text-sm font-medium text-on-accent transition-colors hover:bg-accent-strong"
+              className="h-11 rounded-md bg-accent px-4 text-base sm:text-sm font-medium text-accent-ink transition-colors hover:bg-accent-strong"
             >
               Filtern
             </button>
