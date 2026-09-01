@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 
 import { LISTING_STATUS_LABELS, type ListingStatus } from '@ap/core/marketplace/status';
 
+import { useToast } from '@/components/ui/Toast';
+
 /**
  * Statuswechsel einer eigenen Anzeige.
  *
@@ -33,7 +35,7 @@ export function ListingActions({
 }) {
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState<ListingStatus | null>(null);
-  const [meldung, setMeldung] = useState<string | null>(null);
+  const { zeigen } = useToast();
 
   useEffect(() => {
     setBereit(true);
@@ -49,7 +51,6 @@ export function ListingActions({
     }
 
     setLaeuft(status);
-    setMeldung(null);
     try {
       const antwort = await fetch(`/api/anzeigen/${listingId}/status`, {
         method: 'PATCH',
@@ -57,13 +58,14 @@ export function ListingActions({
         body: JSON.stringify({ status }),
       });
       if (antwort.ok) {
+        zeigen('Status geändert.', { ton: 'positive' });
         window.location.reload();
         return;
       }
       const inhalt = (await antwort.json()) as { error?: { message?: string } };
-      setMeldung(inhalt.error?.message ?? 'Das hat gerade nicht geklappt.');
+      zeigen(inhalt.error?.message ?? 'Das hat gerade nicht geklappt.', { ton: 'critical' });
     } catch {
-      setMeldung('Das hat gerade nicht geklappt.');
+      zeigen('Das hat gerade nicht geklappt.', { ton: 'critical' });
     } finally {
       setLaeuft(null);
     }
@@ -91,11 +93,6 @@ export function ListingActions({
           {laeuft === status ? '…' : (BESCHRIFTUNG[status] ?? LISTING_STATUS_LABELS[status])}
         </button>
       ))}
-      {meldung ? (
-        <span role="status" className="text-xs text-caution">
-          {meldung}
-        </span>
-      ) : null}
     </span>
   );
 }
