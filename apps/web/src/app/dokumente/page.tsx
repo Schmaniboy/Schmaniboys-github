@@ -67,7 +67,7 @@ export default function DokumentePage() {
                 {dok.verfuegbar ? (
                   <Link
                     href={dok.href}
-                    className="shrink-0 rounded-md bg-accent px-4 py-2 text-sm font-medium text-surface-0 transition-colors hover:bg-accent-strong"
+                    className="shrink-0 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-ink transition-colors hover:bg-accent-strong"
                   >
                     Öffnen
                   </Link>

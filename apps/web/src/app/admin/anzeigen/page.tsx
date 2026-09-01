@@ -6,6 +6,7 @@ import { LISTING_STATUS_LABELS, Permission, can, type ListingStatus } from '@ap/
 import { moderationListings } from '@ap/db';
 
 import { ADMIN_NAVIGATION } from '@/components/admin/navigation';
+import { AdminPagination } from '@/components/admin/AdminPagination';
 import { ModerationButtons } from '@/components/admin/ModerationButtons';
 import { euro } from '@/components/marketplace/ListingCard';
 import { Badge } from '@/components/ui/Badge';
@@ -134,6 +135,13 @@ export default async function AdminAnzeigenPage({ searchParams }: Props) {
               </tbody>
             </table>
           </div>
+          <AdminPagination
+            pfad="/admin/anzeigen"
+            seite={seite}
+            gesamt={ergebnis.gesamt}
+            seitengroesse={50}
+            parameter={{ status }}
+          />
         </CardBody>
       </Card>
     </DashboardShell>

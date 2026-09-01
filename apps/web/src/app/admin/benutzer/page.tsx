@@ -5,6 +5,7 @@ import { Permission, can } from '@ap/core';
 import { searchUsers } from '@ap/db';
 
 import { ADMIN_NAVIGATION } from '@/components/admin/navigation';
+import { AdminPagination } from '@/components/admin/AdminPagination';
 import { UserTable } from '@/components/admin/UserTable';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { DashboardShell } from '@/components/layout/DashboardShell';
@@ -98,6 +99,13 @@ export default async function AdminBenutzerPage({ searchParams }: Props) {
               listings: zeile.listings,
               balanceTokens: zeile.balanceTokens,
             }))}
+          />
+          <AdminPagination
+            pfad="/admin/benutzer"
+            seite={seite}
+            gesamt={ergebnis.gesamt}
+            seitengroesse={50}
+            parameter={{ q: suche, rolle }}
           />
         </CardBody>
       </Card>

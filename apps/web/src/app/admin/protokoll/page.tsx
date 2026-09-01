@@ -5,6 +5,7 @@ import { Permission, can } from '@ap/core';
 import { auditEntries } from '@ap/db';
 
 import { ADMIN_NAVIGATION } from '@/components/admin/navigation';
+import { AdminPagination } from '@/components/admin/AdminPagination';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { getCurrentSession } from '@/lib/session';
@@ -106,6 +107,13 @@ export default async function AdminProtokollPage({ searchParams }: Props) {
               </tbody>
             </table>
           </div>
+          <AdminPagination
+            pfad="/admin/protokoll"
+            seite={seite}
+            gesamt={ergebnis.gesamt}
+            seitengroesse={100}
+            parameter={{ action }}
+          />
         </CardBody>
       </Card>
     </DashboardShell>
