@@ -1,8 +1,18 @@
-import type { AuthDeps, SessionRepository, UserRepository } from '@ap/core';
+import type {
+  AdminUserDeps,
+  AuthDeps,
+  EmailVerificationRepository,
+  PasswordResetRepository,
+  SessionRepository,
+  TokenDeps,
+  TokenRepository,
+  UserRepository,
+} from '@ap/core';
 import { InMemoryRateLimiter, systemClock } from '@ap/core';
 import {
   auditLogger,
   clearFailedLogins,
+  countSuperAdmins,
   createSession,
   createUser,
   deleteAllSessionsOfUser,
@@ -10,9 +20,17 @@ import {
   findSessionByTokenHash,
   findUserByEmail,
   findUserById,
+  findUserRole,
+  findeToken,
+  markiereEmailBestaetigt,
   registerFailedLogin,
+  setUserRole,
+  setUserStatus,
+  setzePasswortUndBeendeSitzungen,
+  stelleTokenAus,
   touchSession,
   updatePasswordHash,
+  verbraucheToken,
 } from '@ap/db';
 
 /**
@@ -45,6 +63,47 @@ export const authDeps: AuthDeps = {
   users: userRepository,
   sessions: sessionRepository,
   clock: systemClock,
+  audit: auditLogger,
+};
+
+// ---------------------------------------------------------------------------
+// Token-Vorgaenge (Einmal-Token)
+// ---------------------------------------------------------------------------
+
+const tokenRepository: TokenRepository = {
+  find: findeToken,
+  consume: verbraucheToken,
+  issue: stelleTokenAus,
+};
+
+const passwordResetRepository: PasswordResetRepository = {
+  setPasswordAndEndSessions: setzePasswortUndBeendeSitzungen,
+};
+
+const emailVerificationRepository: EmailVerificationRepository = {
+  markVerified: markiereEmailBestaetigt,
+};
+
+export const tokenDeps: TokenDeps & {
+  passwords: PasswordResetRepository;
+  emailVerification: EmailVerificationRepository;
+} = {
+  tokens: tokenRepository,
+  passwords: passwordResetRepository,
+  emailVerification: emailVerificationRepository,
+  clock: systemClock,
+  audit: auditLogger,
+};
+
+// ---------------------------------------------------------------------------
+// Benutzerverwaltung (Administration)
+// ---------------------------------------------------------------------------
+
+export const adminUserDeps: AdminUserDeps = {
+  findUserRole,
+  countSuperAdmins,
+  setUserRole,
+  setUserStatus,
   audit: auditLogger,
 };
 

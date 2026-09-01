@@ -7,8 +7,12 @@ describe('CSP-Aufteilung', () => {
     for (const pfad of [
       '/anmelden',
       '/registrieren',
+      '/passwort-vergessen',
+      '/passwort-neu',
+      '/email-bestaetigen',
       '/konto',
       '/konto/guthaben',
+      '/verkaufen',
       '/haendler/bestand',
       '/admin',
       '/api/auth/me',
@@ -18,7 +22,7 @@ describe('CSP-Aufteilung', () => {
   });
 
   it('vergibt fuer oeffentliche, statische Seiten keinen Nonce', () => {
-    for (const pfad of ['/', '/katalog', '/katalog/bmw/3er', '/suche', '/marktplatz', '/verkaufen']) {
+    for (const pfad of ['/', '/katalog', '/katalog/bmw/3er', '/suche', '/marktplatz']) {
       expect(usesNonce(pfad), pfad).toBe(false);
     }
   });

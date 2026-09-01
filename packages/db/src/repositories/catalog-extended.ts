@@ -1325,3 +1325,73 @@ export async function zaehleRedaktionsstatus() {
 
   return { DRAFT: entwurf, IN_REVIEW: pruefung, PUBLISHED: veroeffentlicht, ARCHIVED: archiv };
 }
+
+// ---------------------------------------------------------------------------
+// Gefuehrte Fahrzeugbestimmung
+// ---------------------------------------------------------------------------
+
+type AuswahlEbene = 'modelle' | 'generationen' | 'antriebe' | 'linien';
+
+export interface AuswahlOption {
+  id: string;
+  name: string;
+}
+
+export async function katalogAuswahl(
+  ebene: AuswahlEbene,
+  eltern: string,
+): Promise<AuswahlOption[]> {
+  switch (ebene) {
+    case 'modelle':
+      return prisma.model.findMany({
+        where: { manufacturerId: eltern, ...VEROEFFENTLICHT },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      });
+
+    case 'generationen': {
+      const rows = await prisma.generation.findMany({
+        where: { modelId: eltern, ...VEROEFFENTLICHT },
+        orderBy: { yearFrom: 'desc' },
+        select: { id: true, name: true, code: true, yearFrom: true, yearTo: true },
+      });
+      return rows.map((row) => ({
+        id: row.id,
+        name: [row.name, row.code, `${row.yearFrom}–${row.yearTo ?? 'heute'}`]
+          .filter(Boolean)
+          .join(' · '),
+      }));
+    }
+
+    case 'antriebe': {
+      const rows = await prisma.powertrainCombination.findMany({
+        where: { generationId: eltern, ...VEROEFFENTLICHT },
+        orderBy: { powerKw: 'desc' },
+        select: {
+          id: true,
+          powerKw: true,
+          driveType: true,
+          engine: { select: { name: true, powerKw: true } },
+          transmission: { select: { name: true } },
+        },
+      });
+      return rows.map((row) => ({
+        id: row.id,
+        name: [
+          row.engine.name,
+          row.powerKw ?? row.engine.powerKw ? `${row.powerKw ?? row.engine.powerKw} kW` : null,
+          row.transmission.name,
+        ]
+          .filter(Boolean)
+          .join(' · '),
+      }));
+    }
+
+    case 'linien':
+      return prisma.trimLine.findMany({
+        where: { generationId: eltern, ...VEROEFFENTLICHT },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      });
+  }
+}
