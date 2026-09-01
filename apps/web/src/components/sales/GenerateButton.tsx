@@ -31,6 +31,13 @@ export function GenerateButton({ draftId, preis }: { draftId: string; preis: num
       };
 
       if (antwort.ok) {
+        const abgebucht = inhalt.data?.charged ?? 0;
+        zeigen(
+          abgebucht > 0
+            ? `Texte erstellt — ${abgebucht} Token${abgebucht === 1 ? '' : 's'} abgebucht.`
+            : 'Texte erstellt — keine Tokens abgebucht.',
+          { ton: 'positive' },
+        );
         router.refresh();
         return;
       }

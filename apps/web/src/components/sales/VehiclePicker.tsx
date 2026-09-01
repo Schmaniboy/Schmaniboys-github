@@ -105,6 +105,7 @@ export function VehiclePicker({
       });
 
       if (antwort.ok) {
+        zeigen('Fahrzeug bestätigt.', { ton: 'positive' });
         router.refresh();
         return;
       }
