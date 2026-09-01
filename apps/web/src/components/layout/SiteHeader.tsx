@@ -13,18 +13,19 @@ import { NotificationBell } from './NotificationBell';
  */
 
 const NAVIGATION = [
-  { href: '/katalog', label: 'Fahrzeugwissen', hint: 'Marken, Generationen, Motoren, Ausstattung' },
-  { href: '/suche', label: 'Motorvarianten', hint: 'Motorvarianten filtern und vergleichen' },
+  { href: '/katalog', label: 'Fahrzeuge', hint: 'Marken, Modelle, Generationen' },
+  { href: '/suche', label: 'Motoren', hint: 'Motorvarianten filtern und vergleichen' },
+  { href: '/ausstattung', label: 'Ausstattung', hint: 'Sonderausstattung und Pakete' },
+  { href: '/verkaufen', label: 'Verkaufen', hint: 'Fahrzeug inserieren' },
+  { href: '/dokumente', label: 'Dokumente', hint: 'Kaufvertrag, Protokoll, Checkliste' },
   { href: '/katalog/vergleich', label: 'Vergleich', hint: 'Bis zu vier Fahrzeuge nebeneinander' },
   { href: '/katalog/datenbestand', label: 'Datenbestand', hint: 'Was erfasst ist — und was nicht' },
-  { href: '/verkaufen', label: 'Verkaufen', hint: 'Anzeige erstellen' },
   { href: '/katalog/hsn-tsn', label: 'HSN/TSN', hint: 'Schlüsselnummern nachschlagen' },
   { href: '/registrieren', label: 'Konto erstellen', hint: 'Merkzettel, eigene Fahrzeuge, Anzeigen' },
 ];
 
-/** Auf dem Desktop bleibt die Leiste kurz; das Uebrige steht im Fussbereich. */
 const HAUPTNAVIGATION = NAVIGATION.filter((eintrag) =>
-  ['/katalog', '/suche', '/verkaufen'].includes(eintrag.href),
+  ['/katalog', '/suche', '/ausstattung', '/verkaufen', '/dokumente'].includes(eintrag.href),
 );
 
 

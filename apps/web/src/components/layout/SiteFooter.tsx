@@ -5,16 +5,18 @@ const COLUMNS = [
   {
     title: 'Plattform',
     links: [
-      { href: '/katalog', label: 'Fahrzeugwissen' },
-      { href: '/suche', label: 'Fahrzeugsuche' },
+      { href: '/katalog', label: 'Fahrzeuge' },
+      { href: '/suche', label: 'Motoren' },
+      { href: '/ausstattung', label: 'Ausstattung' },
       { href: '/marktplatz', label: 'Marktplatz' },
       { href: '/katalog/glossar', label: 'Glossar' },
     ],
   },
   {
-    title: 'Verkaufen',
+    title: 'Verkaufen & Dokumente',
     links: [
       { href: '/verkaufen', label: 'Fahrzeug verkaufen' },
+      { href: '/dokumente', label: 'Vorlagen & Dokumente' },
       { href: '/bewertung', label: 'Fahrzeugbewertung' },
       { href: '/haendler', label: 'Für Händler' },
     ],
