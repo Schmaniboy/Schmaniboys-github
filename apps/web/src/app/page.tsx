@@ -21,8 +21,8 @@ const BEREICHE = [
   {
     titel: 'Ausstattung prüfen',
     text: 'Was war Serie, was kostete Aufpreis, was gab es nur im Paket? Abhaken, was am Fahrzeug verbaut ist, und den Ausstattungsgrad sehen.',
-    href: '/katalog',
-    aktion: 'Baureihe wählen',
+    href: '/ausstattung',
+    aktion: 'Ausstattung öffnen',
   },
   {
     titel: 'Verkaufen ohne Ratespiel',
@@ -35,6 +35,12 @@ const BEREICHE = [
     text: 'Motor, Getriebe und Antrieb als Kombination — mit Leistung, Verbrauch, Beschleunigung und Messverfahren. Filtern, sortieren und direkt vergleichen.',
     href: '/suche',
     aktion: 'Motorvarianten durchsuchen',
+  },
+  {
+    titel: 'Dokumente',
+    text: 'Kaufvertrag, Übergabeprotokoll, Käufer-Checkliste — Vorlagen zum Ausfüllen und Ausdrucken.',
+    href: '/dokumente',
+    aktion: 'Vorlagen ansehen',
   },
   {
     titel: 'Schlüsselnummern',
