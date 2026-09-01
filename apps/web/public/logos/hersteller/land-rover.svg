@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 60" fill="none">
+  <ellipse cx="80" cy="30" rx="74" ry="26" stroke="#2E5B2A" stroke-width="3"/>
+  <text x="80" y="26" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="11" letter-spacing="2" fill="#2E5B2A">LAND</text>
+  <text x="80" y="40" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="11" letter-spacing="2" fill="#2E5B2A">ROVER</text>
+</svg>

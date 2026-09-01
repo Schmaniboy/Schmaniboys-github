@@ -29,6 +29,7 @@
     "db:studio": "npx prisma studio --schema packages/db/prisma/schema.prisma",
     "db:seed": "node scripts/seed-alle.mjs",
     "db:seed:demo": "tsx scripts/seed-demo.ts",
+    "db:seed:hersteller": "tsx scripts/seed-hersteller.ts",
     "admin:erster": "tsx scripts/ersten-admin.ts",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
     "deploy:pruefen": "tsx scripts/pruefe-deployment.ts",
