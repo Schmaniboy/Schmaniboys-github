@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import { MAX_BILDER_JE_ANZEIGE, MAX_UPLOAD_BYTES } from '@ap/core/marketplace/images';
 
+import { useToast } from '@/components/ui/Toast';
+
 
 /**
  * Bilder einer Anzeige verwalten.
@@ -32,8 +34,8 @@ export function ListingImageManager({
   const [bilder, setBilder] = useState<Bild[]>(anfaenglich);
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
-  const [meldung, setMeldung] = useState<string | null>(null);
   const dateiFeld = useRef<HTMLInputElement>(null);
+  const { zeigen } = useToast();
 
   useEffect(() => {
     setBereit(true);
@@ -42,13 +44,13 @@ export function ListingImageManager({
   async function hochladen(dateien: FileList | null) {
     if (!dateien || dateien.length === 0) return;
     setLaeuft(true);
-    setMeldung(null);
 
     const neue: Bild[] = [];
     for (const datei of Array.from(dateien)) {
       if (datei.size > MAX_UPLOAD_BYTES) {
-        setMeldung(
+        zeigen(
           `„${datei.name}" ist größer als ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} MB.`,
+          { ton: 'caution' },
         );
         continue;
       }
@@ -68,10 +70,12 @@ export function ListingImageManager({
         if (antwort.ok && inhalt.data) {
           neue.push(inhalt.data.image);
         } else {
-          setMeldung(inhalt.error?.message ?? `„${datei.name}" wurde nicht angenommen.`);
+          zeigen(inhalt.error?.message ?? `„${datei.name}" wurde nicht angenommen.`, {
+            ton: 'critical',
+          });
         }
       } catch {
-        setMeldung(`„${datei.name}" wurde nicht angenommen.`);
+        zeigen(`„${datei.name}" wurde nicht angenommen.`, { ton: 'critical' });
       }
     }
 
@@ -90,11 +94,12 @@ export function ListingImageManager({
       );
       if (antwort.ok) {
         setBilder((bisher) => bisher.filter((bild) => bild.id !== bildId));
+        zeigen('Bild entfernt.', { ton: 'positive' });
       } else {
-        setMeldung('Das Bild ließ sich nicht entfernen.');
+        zeigen('Das Bild ließ sich nicht entfernen.', { ton: 'critical' });
       }
     } catch {
-      setMeldung('Das Bild ließ sich nicht entfernen.');
+      zeigen('Das Bild ließ sich nicht entfernen.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -117,7 +122,7 @@ export function ListingImageManager({
         body: JSON.stringify({ imageIds: neu.map((bild) => bild.id) }),
       });
     } catch {
-      setMeldung('Die Reihenfolge ließ sich nicht speichern.');
+      zeigen('Die Reihenfolge ließ sich nicht speichern.', { ton: 'critical' });
     }
   }
 
@@ -128,15 +133,6 @@ export function ListingImageManager({
         Hochladen neu geschrieben — damit verschwinden die Aufnahmedaten aus der Datei,
         insbesondere der Aufnahmeort. Das erste Bild ist das Vorschaubild.
       </p>
-
-      {meldung ? (
-        <p
-          role="status"
-          className="rounded-md border border-caution/40 bg-caution/10 px-4 py-3 text-sm text-caution"
-        >
-          {meldung}
-        </p>
-      ) : null}
 
       {bilder.length > 0 ? (
         <ul className="grid gap-3 sm:grid-cols-2">

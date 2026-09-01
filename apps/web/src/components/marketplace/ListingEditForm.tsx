@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { CheckboxField, InputField, TextareaField } from '@/components/ui/Field';
+import { useToast } from '@/components/ui/Toast';
 
 /**
  * Bearbeitung einer Anzeige.
@@ -31,7 +32,7 @@ export function ListingEditForm({
 }) {
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
-  const [meldung, setMeldung] = useState<{ art: 'gut' | 'schlecht'; text: string } | null>(null);
+  const { zeigen } = useToast();
 
   useEffect(() => {
     setBereit(true);
@@ -41,7 +42,6 @@ export function ListingEditForm({
     ereignis.preventDefault();
     const formular = new FormData(ereignis.currentTarget);
     setLaeuft(true);
-    setMeldung(null);
 
     const preisEuro = Number(String(formular.get('preis') ?? '').replace(',', '.'));
 
@@ -60,16 +60,13 @@ export function ListingEditForm({
       });
 
       if (antwort.ok) {
-        setMeldung({ art: 'gut', text: 'Gespeichert.' });
+        zeigen('Gespeichert.', { ton: 'positive' });
       } else {
         const inhalt = (await antwort.json()) as { error?: { message?: string } };
-        setMeldung({
-          art: 'schlecht',
-          text: inhalt.error?.message ?? 'Das hat gerade nicht geklappt.',
-        });
+        zeigen(inhalt.error?.message ?? 'Das hat gerade nicht geklappt.', { ton: 'critical' });
       }
     } catch {
-      setMeldung({ art: 'schlecht', text: 'Das hat gerade nicht geklappt.' });
+      zeigen('Das hat gerade nicht geklappt.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -128,19 +125,6 @@ export function ListingEditForm({
         Der Standort erscheint in der Anzeige als Postleitzahl und Ort. Eine Straße oder
         Hausnummer wird nicht erfasst — sie gehört nicht in ein öffentliches Inserat.
       </p>
-
-      {meldung ? (
-        <p
-          role="status"
-          className={`rounded-md border px-4 py-3 text-sm ${
-            meldung.art === 'gut'
-              ? 'border-positive/40 bg-positive/10 text-positive'
-              : 'border-caution/40 bg-caution/10 text-caution'
-          }`}
-        >
-          {meldung.text}
-        </p>
-      ) : null}
 
       <Button type="submit" disabled={!bereit || laeuft}>
         {laeuft ? 'Wird gespeichert …' : 'Änderungen speichern'}

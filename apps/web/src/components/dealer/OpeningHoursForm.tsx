@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { WOCHENTAGE, minutenZuUhrzeit } from '@ap/core/dealer/opening-hours';
 
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 
 /**
  * Oeffnungszeiten bearbeiten.
@@ -53,7 +54,7 @@ export function OpeningHoursForm({
   const [zeiten, setZeiten] = useState(() => ausSpannen(spannen));
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
-  const [meldung, setMeldung] = useState<{ art: 'gut' | 'schlecht'; text: string } | null>(null);
+  const { zeigen } = useToast();
 
   useEffect(() => {
     setBereit(true);
@@ -71,7 +72,6 @@ export function OpeningHoursForm({
   async function speichern(ereignis: React.FormEvent<HTMLFormElement>) {
     ereignis.preventDefault();
     setLaeuft(true);
-    setMeldung(null);
 
     const gesammelt: { weekday: number; von: string; bis: string }[] = [];
     for (const tag of WOCHENTAGE) {
@@ -89,19 +89,18 @@ export function OpeningHoursForm({
         body: JSON.stringify({ spannen: gesammelt }),
       });
       if (antwort.ok) {
-        setMeldung({ art: 'gut', text: 'Öffnungszeiten gespeichert.' });
+        zeigen('Öffnungszeiten gespeichert.', { ton: 'positive' });
       } else {
         const inhalt = (await antwort.json()) as {
           error?: { message?: string; issues?: Record<string, string[]> };
         };
         const erstes = Object.values(inhalt.error?.issues ?? {})[0]?.[0];
-        setMeldung({
-          art: 'schlecht',
-          text: erstes ?? inhalt.error?.message ?? 'Das hat gerade nicht geklappt.',
+        zeigen(erstes ?? inhalt.error?.message ?? 'Das hat gerade nicht geklappt.', {
+          ton: 'critical',
         });
       }
     } catch {
-      setMeldung({ art: 'schlecht', text: 'Das hat gerade nicht geklappt.' });
+      zeigen('Das hat gerade nicht geklappt.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -146,19 +145,6 @@ export function OpeningHoursForm({
           </div>
         ))}
       </div>
-
-      {meldung ? (
-        <p
-          role="status"
-          className={`rounded-md border px-4 py-3 text-sm ${
-            meldung.art === 'gut'
-              ? 'border-positive/40 bg-positive/10 text-positive'
-              : 'border-caution/40 bg-caution/10 text-caution'
-          }`}
-        >
-          {meldung.text}
-        </p>
-      ) : null}
 
       {!schreibgeschuetzt ? (
         <Button type="submit" disabled={!bereit || laeuft}>

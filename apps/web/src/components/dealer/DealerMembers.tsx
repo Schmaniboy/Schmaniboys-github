@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 
 /**
  * Mitarbeiter aufnehmen, umstufen, entfernen.
@@ -35,7 +36,7 @@ export function DealerMembers({
   const [mitglieder, setMitglieder] = useState(anfaenglich);
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
-  const [meldung, setMeldung] = useState<{ art: 'gut' | 'schlecht'; text: string } | null>(null);
+  const { zeigen } = useToast();
 
   useEffect(() => {
     setBereit(true);
@@ -43,9 +44,8 @@ export function DealerMembers({
 
   function melde(antwortInhalt: { error?: { message?: string; issues?: Record<string, string[]> } }) {
     const erstes = Object.values(antwortInhalt.error?.issues ?? {})[0]?.[0];
-    setMeldung({
-      art: 'schlecht',
-      text: erstes ?? antwortInhalt.error?.message ?? 'Das hat gerade nicht geklappt.',
+    zeigen(erstes ?? antwortInhalt.error?.message ?? 'Das hat gerade nicht geklappt.', {
+      ton: 'critical',
     });
   }
 
@@ -53,7 +53,6 @@ export function DealerMembers({
     ereignis.preventDefault();
     const formular = new FormData(ereignis.currentTarget);
     setLaeuft(true);
-    setMeldung(null);
 
     try {
       const antwort = await fetch('/api/haendler/mitarbeiter', {
@@ -70,13 +69,13 @@ export function DealerMembers({
       };
       if (antwort.ok && inhalt.data) {
         setMitglieder((bisher) => [...bisher, inhalt.data!.member]);
-        setMeldung({ art: 'gut', text: 'Person aufgenommen.' });
+        zeigen('Person aufgenommen.', { ton: 'positive' });
         ereignis.currentTarget.reset();
       } else {
         melde(inhalt);
       }
     } catch {
-      setMeldung({ art: 'schlecht', text: 'Das hat gerade nicht geklappt.' });
+      zeigen('Das hat gerade nicht geklappt.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -84,7 +83,6 @@ export function DealerMembers({
 
   async function rolleAendern(userId: string, role: string) {
     setLaeuft(true);
-    setMeldung(null);
     try {
       const antwort = await fetch('/api/haendler/mitarbeiter', {
         method: 'PATCH',
@@ -99,7 +97,7 @@ export function DealerMembers({
         melde((await antwort.json()) as { error?: { message?: string } });
       }
     } catch {
-      setMeldung({ art: 'schlecht', text: 'Das hat gerade nicht geklappt.' });
+      zeigen('Das hat gerade nicht geklappt.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -110,7 +108,6 @@ export function DealerMembers({
       return;
     }
     setLaeuft(true);
-    setMeldung(null);
     try {
       const antwort = await fetch(
         `/api/haendler/mitarbeiter?userId=${encodeURIComponent(userId)}`,
@@ -118,11 +115,12 @@ export function DealerMembers({
       );
       if (antwort.ok) {
         setMitglieder((bisher) => bisher.filter((person) => person.id !== userId));
+        zeigen('Person entfernt.', { ton: 'positive' });
       } else {
         melde((await antwort.json()) as { error?: { message?: string } });
       }
     } catch {
-      setMeldung({ art: 'schlecht', text: 'Das hat gerade nicht geklappt.' });
+      zeigen('Das hat gerade nicht geklappt.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -130,19 +128,6 @@ export function DealerMembers({
 
   return (
     <div className="space-y-6">
-      {meldung ? (
-        <p
-          role="status"
-          className={`rounded-md border px-4 py-3 text-sm ${
-            meldung.art === 'gut'
-              ? 'border-positive/40 bg-positive/10 text-positive'
-              : 'border-caution/40 bg-caution/10 text-caution'
-          }`}
-        >
-          {meldung.text}
-        </p>
-      ) : null}
-
       <ul className="divide-y divide-line/40">
         {mitglieder.map((person) => {
           const binIch = person.id === eigeneKennung;

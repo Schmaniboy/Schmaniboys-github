@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MAX_LAENGE } from '@ap/core/messaging/policy';
 
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 
 /**
  * Ein Gespraech.
@@ -60,8 +61,8 @@ export function ConversationView({
   const [nachrichten, setNachrichten] = useState(anfaenglich);
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
-  const [meldung, setMeldung] = useState<string | null>(null);
   const [geschlossen, setGeschlossen] = useState(zustand !== 'OPEN');
+  const { zeigen } = useToast();
   const feld = useRef<HTMLTextAreaElement>(null);
   const ende = useRef<HTMLDivElement>(null);
 
@@ -79,7 +80,6 @@ export function ConversationView({
     if (text.trim().length < 2) return;
 
     setLaeuft(true);
-    setMeldung(null);
     try {
       const antwort = await fetch(`/api/nachrichten/${conversationId}`, {
         method: 'POST',
@@ -106,10 +106,12 @@ export function ConversationView({
         ]);
         if (feld.current) feld.current.value = '';
       } else {
-        setMeldung(inhalt.error?.message ?? 'Die Nachricht wurde nicht gesendet.');
+        zeigen(inhalt.error?.message ?? 'Die Nachricht wurde nicht gesendet.', {
+          ton: 'critical',
+        });
       }
     } catch {
-      setMeldung('Die Nachricht wurde nicht gesendet.');
+      zeigen('Die Nachricht wurde nicht gesendet.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -127,10 +129,10 @@ export function ConversationView({
       if (antwort.ok) {
         setGeschlossen(ziel === 'CLOSED');
       } else {
-        setMeldung('Das hat gerade nicht geklappt.');
+        zeigen('Das hat gerade nicht geklappt.', { ton: 'critical' });
       }
     } catch {
-      setMeldung('Das hat gerade nicht geklappt.');
+      zeigen('Das hat gerade nicht geklappt.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -237,15 +239,6 @@ export function ConversationView({
         })}
       </ul>
       <div ref={ende} />
-
-      {meldung ? (
-        <p
-          role="status"
-          className="rounded-md border border-caution/40 bg-caution/10 px-4 py-3 text-sm text-caution"
-        >
-          {meldung}
-        </p>
-      ) : null}
 
       {geschlossen ? (
         <p className="rounded-md border border-line/60 bg-surface-2 px-4 py-3 text-sm text-ink-muted">

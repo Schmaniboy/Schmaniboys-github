@@ -7,6 +7,7 @@ import type { Valuation } from '@ap/core/valuation/estimate';
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 
 /**
  * Die Fahrzeugbewertung im Entwurf.
@@ -83,11 +84,10 @@ export function ValuationPanel({
 }) {
   const [bewertung, setBewertung] = useState<Valuation | null>(vorhandene);
   const [laeuft, setLaeuft] = useState(false);
-  const [meldung, setMeldung] = useState<string | null>(null);
+  const { zeigen } = useToast();
 
   async function bewerten() {
     setLaeuft(true);
-    setMeldung(null);
     try {
       const antwort = await fetch(`/api/verkaufen/entwuerfe/${draftId}/bewertung`, {
         method: 'POST',
@@ -97,10 +97,12 @@ export function ValuationPanel({
       if (antwort.ok && inhalt.data) {
         setBewertung(inhalt.data.valuation);
       } else {
-        setMeldung(inhalt.error?.message ?? 'Die Bewertung konnte nicht erstellt werden.');
+        zeigen(inhalt.error?.message ?? 'Die Bewertung konnte nicht erstellt werden.', {
+          ton: 'critical',
+        });
       }
     } catch {
-      setMeldung('Die Bewertung konnte nicht erstellt werden.');
+      zeigen('Die Bewertung konnte nicht erstellt werden.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -117,15 +119,6 @@ export function ValuationPanel({
 
   return (
     <div className="space-y-4">
-      {meldung ? (
-        <p
-          role="status"
-          className="rounded-md border border-caution/40 bg-caution/10 px-4 py-3 text-sm text-caution"
-        >
-          {meldung}
-        </p>
-      ) : null}
-
       {bewertung ? (
         <>
           <div className="flex flex-wrap items-center gap-2">

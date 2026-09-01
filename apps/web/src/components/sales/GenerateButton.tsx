@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 
 /**
  * Loest die kostenpflichtige Texterzeugung aus.
@@ -13,11 +14,10 @@ import { Button } from '@/components/ui/Button';
  */
 export function GenerateButton({ draftId, preis }: { draftId: string; preis: number }) {
   const [busy, setBusy] = useState(false);
-  const [meldung, setMeldung] = useState<string | null>(null);
+  const { zeigen } = useToast();
 
   async function erzeugen() {
     setBusy(true);
-    setMeldung(null);
 
     try {
       const antwort = await fetch(`/api/verkaufen/entwuerfe/${draftId}/texte`, {
@@ -33,9 +33,11 @@ export function GenerateButton({ draftId, preis }: { draftId: string; preis: num
         return;
       }
 
-      setMeldung(inhalt.error?.message ?? 'Die Texte konnten nicht erzeugt werden.');
+      zeigen(inhalt.error?.message ?? 'Die Texte konnten nicht erzeugt werden.', {
+        ton: 'critical',
+      });
     } catch {
-      setMeldung('Der Server war nicht erreichbar.');
+      zeigen('Der Server war nicht erreichbar.', { ton: 'critical' });
     } finally {
       setBusy(false);
     }
@@ -43,14 +45,6 @@ export function GenerateButton({ draftId, preis }: { draftId: string; preis: num
 
   return (
     <div className="space-y-3">
-      {meldung ? (
-        <p
-          role="alert"
-          className="rounded-md border border-caution/40 bg-caution/10 px-4 py-3 text-sm text-caution"
-        >
-          {meldung}
-        </p>
-      ) : null}
       <Button variant="primary" size="lg" busy={busy} onClick={erzeugen}>
         Verkaufstexte erstellen ({preis} Tokens)
       </Button>

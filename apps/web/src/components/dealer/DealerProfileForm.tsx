@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { InputField, TextareaField } from '@/components/ui/Field';
+import { useToast } from '@/components/ui/Toast';
 
 interface Werte {
   name: string;
@@ -29,8 +30,8 @@ export function DealerProfileForm({
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
   const [logo, setLogo] = useState(logoStorageKey);
-  const [meldung, setMeldung] = useState<{ art: 'gut' | 'schlecht'; text: string } | null>(null);
   const dateiFeld = useRef<HTMLInputElement>(null);
+  const { zeigen } = useToast();
 
   useEffect(() => {
     setBereit(true);
@@ -40,7 +41,6 @@ export function DealerProfileForm({
     ereignis.preventDefault();
     const formular = new FormData(ereignis.currentTarget);
     setLaeuft(true);
-    setMeldung(null);
 
     try {
       const antwort = await fetch('/api/haendler/profil', {
@@ -49,19 +49,18 @@ export function DealerProfileForm({
         body: JSON.stringify(Object.fromEntries(formular)),
       });
       if (antwort.ok) {
-        setMeldung({ art: 'gut', text: 'Gespeichert.' });
+        zeigen('Profil gespeichert.', { ton: 'positive' });
       } else {
         const inhalt = (await antwort.json()) as {
           error?: { message?: string; issues?: Record<string, string[]> };
         };
         const erstesFeld = Object.values(inhalt.error?.issues ?? {})[0]?.[0];
-        setMeldung({
-          art: 'schlecht',
-          text: erstesFeld ?? inhalt.error?.message ?? 'Das hat gerade nicht geklappt.',
+        zeigen(erstesFeld ?? inhalt.error?.message ?? 'Das hat gerade nicht geklappt.', {
+          ton: 'critical',
         });
       }
     } catch {
-      setMeldung({ art: 'schlecht', text: 'Das hat gerade nicht geklappt.' });
+      zeigen('Das hat gerade nicht geklappt.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -72,7 +71,6 @@ export function DealerProfileForm({
     if (!datei) return;
 
     setLaeuft(true);
-    setMeldung(null);
     const formular = new FormData();
     formular.append('datei', datei);
 
@@ -84,15 +82,12 @@ export function DealerProfileForm({
       };
       if (antwort.ok && inhalt.data) {
         setLogo(inhalt.data.logoStorageKey);
-        setMeldung({ art: 'gut', text: 'Logo gespeichert.' });
+        zeigen('Logo gespeichert.', { ton: 'positive' });
       } else {
-        setMeldung({
-          art: 'schlecht',
-          text: inhalt.error?.message ?? 'Das Logo wurde nicht angenommen.',
-        });
+        zeigen(inhalt.error?.message ?? 'Das Logo wurde nicht angenommen.', { ton: 'critical' });
       }
     } catch {
-      setMeldung({ art: 'schlecht', text: 'Das Logo wurde nicht angenommen.' });
+      zeigen('Das Logo wurde nicht angenommen.', { ton: 'critical' });
     } finally {
       if (dateiFeld.current) dateiFeld.current.value = '';
       setLaeuft(false);
@@ -152,19 +147,6 @@ export function DealerProfileForm({
         </div>
 
         <InputField name="vatId" label="USt-IdNr." defaultValue={werte.vatId} placeholder="DE123456789" disabled={schreibgeschuetzt} />
-
-        {meldung ? (
-          <p
-            role="status"
-            className={`rounded-md border px-4 py-3 text-sm ${
-              meldung.art === 'gut'
-                ? 'border-positive/40 bg-positive/10 text-positive'
-                : 'border-caution/40 bg-caution/10 text-caution'
-            }`}
-          >
-            {meldung.text}
-          </p>
-        ) : null}
 
         {!schreibgeschuetzt ? (
           <Button type="submit" disabled={gesperrt}>

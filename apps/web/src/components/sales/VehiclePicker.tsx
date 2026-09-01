@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { SelectField } from '@/components/ui/Field';
+import { useToast } from '@/components/ui/Toast';
 
 /**
  * Gefuehrte Fahrzeugbestimmung.
@@ -57,7 +58,7 @@ export function VehiclePicker({
   const [linien, setLinien] = useState<Option[]>([]);
 
   const [busy, setBusy] = useState(false);
-  const [meldung, setMeldung] = useState<string | null>(null);
+  const { zeigen } = useToast();
 
   useEffect(() => {
     if (!hersteller) {
@@ -87,7 +88,6 @@ export function VehiclePicker({
 
   async function bestaetigen() {
     setBusy(true);
-    setMeldung(null);
 
     try {
       const antwort = await fetch(`/api/verkaufen/entwuerfe/${draftId}/fahrzeug`, {
@@ -108,9 +108,11 @@ export function VehiclePicker({
       }
 
       const inhalt = (await antwort.json()) as { error?: { message?: string } };
-      setMeldung(inhalt.error?.message ?? 'Die Zuordnung konnte nicht gespeichert werden.');
+      zeigen(inhalt.error?.message ?? 'Die Zuordnung konnte nicht gespeichert werden.', {
+        ton: 'critical',
+      });
     } catch {
-      setMeldung('Der Server war nicht erreichbar.');
+      zeigen('Der Server war nicht erreichbar.', { ton: 'critical' });
     } finally {
       setBusy(false);
     }
@@ -120,15 +122,6 @@ export function VehiclePicker({
 
   return (
     <div className="space-y-4">
-      {meldung ? (
-        <p
-          role="alert"
-          className="rounded-md border border-critical/40 bg-critical/10 px-4 py-3 text-sm text-critical"
-        >
-          {meldung}
-        </p>
-      ) : null}
-
       <SelectField
         label="Hersteller"
         value={hersteller}

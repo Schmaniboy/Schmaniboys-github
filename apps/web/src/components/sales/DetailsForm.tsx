@@ -12,6 +12,7 @@ import { CONDITION_OPTIONS, SERVICE_HISTORY_OPTIONS } from '@ap/core/sales/schem
 
 import { Button } from '@/components/ui/Button';
 import { InputField, SelectField } from '@/components/ui/Field';
+import { useToast } from '@/components/ui/Toast';
 
 /**
  * Angaben zum konkreten Fahrzeug.
@@ -38,10 +39,8 @@ interface Werte {
 
 export function DetailsForm({ draftId, werte }: { draftId: string; werte: Werte }) {
   const [busy, setBusy] = useState(false);
-  const [meldung, setMeldung] = useState<string | null>(null);
-  const [gespeichert, setGespeichert] = useState(false);
-  /* Siehe AuthForm: kein nativer Submit vor dem Einhaengen. */
   const [bereit, setBereit] = useState(false);
+  const { zeigen } = useToast();
 
   useEffect(() => {
     setBereit(true);
@@ -53,8 +52,6 @@ export function DetailsForm({ draftId, werte }: { draftId: string; werte: Werte 
   async function absenden(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
-    setMeldung(null);
-    setGespeichert(false);
 
     const formular = new FormData(event.currentTarget);
     const zahl = (name: string): number | undefined => {
@@ -96,14 +93,16 @@ export function DetailsForm({ draftId, werte }: { draftId: string; werte: Werte 
       });
 
       if (antwort.ok) {
-        setGespeichert(true);
+        zeigen('Angaben gespeichert.', { ton: 'positive' });
         return;
       }
 
       const inhalt = (await antwort.json()) as { error?: { message?: string } };
-      setMeldung(inhalt.error?.message ?? 'Die Angaben konnten nicht gespeichert werden.');
+      zeigen(inhalt.error?.message ?? 'Die Angaben konnten nicht gespeichert werden.', {
+        ton: 'critical',
+      });
     } catch {
-      setMeldung('Der Server war nicht erreichbar.');
+      zeigen('Der Server war nicht erreichbar.', { ton: 'critical' });
     } finally {
       setBusy(false);
     }
@@ -111,20 +110,6 @@ export function DetailsForm({ draftId, werte }: { draftId: string; werte: Werte 
 
   return (
     <form onSubmit={absenden} method="post" className="space-y-4" noValidate>
-      {meldung ? (
-        <p
-          role="alert"
-          className="rounded-md border border-critical/40 bg-critical/10 px-4 py-3 text-sm text-critical"
-        >
-          {meldung}
-        </p>
-      ) : null}
-      {gespeichert ? (
-        <p role="status" className="text-sm text-positive">
-          Angaben gespeichert.
-        </p>
-      ) : null}
-
       <div className="grid gap-4 sm:grid-cols-2">
         <InputField
           label="Kilometerstand"

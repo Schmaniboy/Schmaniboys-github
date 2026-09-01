@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { useToast } from '@/components/ui/Toast';
+
 /**
  * Konten verwalten.
  *
@@ -35,7 +37,7 @@ export function UserTable({
   const [zeilen, setZeilen] = useState(anfaenglich);
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
-  const [meldung, setMeldung] = useState<{ art: 'gut' | 'schlecht'; text: string } | null>(null);
+  const { zeigen } = useToast();
 
   useEffect(() => {
     setBereit(true);
@@ -52,7 +54,6 @@ export function UserTable({
     if (grund === null) return;
 
     setLaeuft(true);
-    setMeldung(null);
     try {
       const antwort = await fetch('/api/admin/benutzer', {
         method: 'PATCH',
@@ -67,16 +68,15 @@ export function UserTable({
         setZeilen((bisher) =>
           bisher.map((zeile) => (zeile.id === userId ? { ...zeile, ...daten } : zeile)),
         );
-        setMeldung({ art: 'gut', text: 'Gespeichert.' });
+        zeigen('Gespeichert.', { ton: 'positive' });
       } else {
         const erstes = Object.values(inhalt.error?.issues ?? {})[0]?.[0];
-        setMeldung({
-          art: 'schlecht',
-          text: erstes ?? inhalt.error?.message ?? 'Das hat gerade nicht geklappt.',
+        zeigen(erstes ?? inhalt.error?.message ?? 'Das hat gerade nicht geklappt.', {
+          ton: 'critical',
         });
       }
     } catch {
-      setMeldung({ art: 'schlecht', text: 'Das hat gerade nicht geklappt.' });
+      zeigen('Das hat gerade nicht geklappt.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -84,19 +84,6 @@ export function UserTable({
 
   return (
     <div className="space-y-4">
-      {meldung ? (
-        <p
-          role="status"
-          className={`rounded-md border px-4 py-3 text-sm ${
-            meldung.art === 'gut'
-              ? 'border-positive/40 bg-positive/10 text-positive'
-              : 'border-caution/40 bg-caution/10 text-caution'
-          }`}
-        >
-          {meldung.text}
-        </p>
-      ) : null}
-
       <div className="overflow-x-auto">
         <table className="w-full min-w-[56rem] text-sm">
           <thead>

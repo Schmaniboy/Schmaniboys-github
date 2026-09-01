@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { CheckboxField, InputField, TextareaField } from '@/components/ui/Field';
+import { useToast } from '@/components/ui/Toast';
 
 /**
  * Aus einem Entwurf eine Anzeige machen.
@@ -24,7 +25,7 @@ export function PublishForm({
 }) {
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState(false);
-  const [meldung, setMeldung] = useState<string | null>(null);
+  const { zeigen } = useToast();
 
   useEffect(() => {
     setBereit(true);
@@ -34,7 +35,6 @@ export function PublishForm({
     ereignis.preventDefault();
     const formular = new FormData(ereignis.currentTarget);
     setLaeuft(true);
-    setMeldung(null);
 
     const preisEuro = Number(String(formular.get('preis') ?? '').replace(',', '.'));
 
@@ -65,9 +65,11 @@ export function PublishForm({
         window.location.assign(`/konto/anzeigen/${inhalt.data.listing.id}`);
         return;
       }
-      setMeldung(inhalt.error?.message ?? 'Die Anzeige konnte nicht angelegt werden.');
+      zeigen(inhalt.error?.message ?? 'Die Anzeige konnte nicht angelegt werden.', {
+        ton: 'critical',
+      });
     } catch {
-      setMeldung('Die Anzeige konnte nicht angelegt werden.');
+      zeigen('Die Anzeige konnte nicht angelegt werden.', { ton: 'critical' });
     } finally {
       setLaeuft(false);
     }
@@ -128,15 +130,6 @@ export function PublishForm({
         Die Anzeige entsteht zunächst als Entwurf. Bilder kommen im nächsten Schritt dazu;
         veröffentlicht wird erst, wenn Sie es auslösen.
       </p>
-
-      {meldung ? (
-        <p
-          role="alert"
-          className="rounded-md border border-critical/40 bg-critical/10 px-4 py-3 text-sm text-critical"
-        >
-          {meldung}
-        </p>
-      ) : null}
 
       <Button type="submit" disabled={!bereit || laeuft}>
         {laeuft ? 'Wird angelegt …' : 'Anzeige anlegen'}

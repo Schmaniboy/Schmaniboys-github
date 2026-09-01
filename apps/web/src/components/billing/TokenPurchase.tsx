@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { formatiereCent, formatiereSteuersatz } from '@ap/core/billing/invoice';
 
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
 
 /**
  * Guthaben kaufen.
@@ -33,7 +34,7 @@ export function TokenPurchase({
 }) {
   const [bereit, setBereit] = useState(false);
   const [laeuft, setLaeuft] = useState<string | null>(null);
-  const [meldung, setMeldung] = useState<string | null>(null);
+  const { zeigen } = useToast();
 
   useEffect(() => {
     setBereit(true);
@@ -41,7 +42,6 @@ export function TokenPurchase({
 
   async function kaufen(paketId: string) {
     setLaeuft(paketId);
-    setMeldung(null);
     try {
       const antwort = await fetch('/api/guthaben/kaufen', {
         method: 'POST',
@@ -56,9 +56,11 @@ export function TokenPurchase({
         window.location.assign(inhalt.data.redirectUrl);
         return;
       }
-      setMeldung(inhalt.error?.message ?? 'Der Kauf konnte nicht begonnen werden.');
+      zeigen(inhalt.error?.message ?? 'Der Kauf konnte nicht begonnen werden.', {
+        ton: 'critical',
+      });
     } catch {
-      setMeldung('Der Kauf konnte nicht begonnen werden.');
+      zeigen('Der Kauf konnte nicht begonnen werden.', { ton: 'critical' });
     } finally {
       setLaeuft(null);
     }
@@ -99,15 +101,6 @@ export function TokenPurchase({
           </li>
         ))}
       </ul>
-
-      {meldung ? (
-        <p
-          role="status"
-          className="rounded-md border border-caution/40 bg-caution/10 px-4 py-3 text-sm text-caution"
-        >
-          {meldung}
-        </p>
-      ) : null}
 
       <p className="text-xs leading-relaxed text-ink-subtle">
         Der Steuersatz ist eine Einstellung dieser Anwendung und wird mit jeder Rechnung
