@@ -36,7 +36,7 @@ const DOKUMENTE = [
     beschreibung:
       'Zusammenfassung aller Katalogdaten zu einem Fahrzeug — Generation, Motor, Ausstattung, bekannte Schwachstellen.',
     href: '/dokumente/fahrzeugbericht',
-    verfuegbar: false,
+    verfuegbar: true,
   },
 ];
 
