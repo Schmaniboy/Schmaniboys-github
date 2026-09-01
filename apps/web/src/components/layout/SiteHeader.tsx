@@ -16,6 +16,7 @@ const NAVIGATION = [
   { href: '/katalog', label: 'Fahrzeuge', hint: 'Marken, Modelle, Generationen' },
   { href: '/suche', label: 'Motoren', hint: 'Motorvarianten filtern und vergleichen' },
   { href: '/ausstattung', label: 'Ausstattung', hint: 'Sonderausstattung und Pakete' },
+  { href: '/marktplatz', label: 'Marktplatz', hint: 'Fahrzeuge von Privat und Händlern' },
   { href: '/verkaufen', label: 'Verkaufen', hint: 'Fahrzeug inserieren' },
   { href: '/dokumente', label: 'Dokumente', hint: 'Kaufvertrag, Protokoll, Checkliste' },
   { href: '/katalog/vergleich', label: 'Vergleich', hint: 'Bis zu vier Fahrzeuge nebeneinander' },
@@ -25,7 +26,7 @@ const NAVIGATION = [
 ];
 
 const HAUPTNAVIGATION = NAVIGATION.filter((eintrag) =>
-  ['/katalog', '/suche', '/ausstattung', '/verkaufen', '/dokumente'].includes(eintrag.href),
+  ['/katalog', '/suche', '/ausstattung', '/marktplatz', '/verkaufen', '/dokumente'].includes(eintrag.href),
 );
 
 
