@@ -3,8 +3,8 @@
 > Letzter Arbeitsstand. Bei Context Reset zuerst lesen.
 
 **Stand:** 2026-09-02
-**Aktueller Bereich:** V2.5 Umsetzung — Prio 5 Design/UX erledigt, weiter mit Prio 6 Fahrzeugkatalog
-**Aktuelle Aufgabe:** Katalogstruktur V2.5 pruefen (Prio 6)
+**Aktueller Bereich:** V2.5 TASK_QUEUE vollstaendig abgearbeitet
+**Aktuelle Aufgabe:** Alle Aufgaben erledigt (ausser Logo-Integration, wartet auf Betreiber)
 
 ## Erledigte Aufgaben (diese Session)
 
@@ -27,6 +27,10 @@
 - [x] Demo-Dokumente: alle 4 Dokumente mit istDemo-Prop, fiktive Beispieldaten, DemoBanner, DEMO-Wasserzeichen, ?demo Query-Parameter, Demo-Links auf Uebersichtsseite
 - [x] Premium Dark Design (V2.5 #15): Glassmorphism globals.css, glass-card/glass-header/glass-input/nav-link/section-divider/auth-bg Klassen, Card/SiteHeader/SiteFooter/MobileNav/Field/PasswordField/Login/Registrierung aktualisiert
 - [x] Login/Registrierung Design: auth-bg Hintergrund, Glass-Card-Wrapper
+- [x] Katalogstruktur V2.5 geprueft: Schema und Frontend bilden alle 7 Ebenen ab
+- [x] Admin-Bereich: bereits einfach und uebersichtlich, Glassmorphism-Kacheln
+- [x] Performance-Audit: 45 Client-Komponenten alle berechtigt, keine Barrel-Import-Verletzung, sharp installiert, prefers-reduced-motion vorhanden
+- [x] CARONEX-UPDATE.bat: TypeScript- und Build-Pruefung ergaenzt
 
 ## Gerade bearbeitete Dateien
 
@@ -43,7 +47,5 @@
 
 ## Naechste Aufgabe
 
-1. Katalogstruktur V2.5 pruefen (Prio 6)
-2. Admin-Bereich vereinfachen (Prio 11)
-3. Performance-Audit (Prio 12)
-4. Logo-Integration (wartet auf Logos im Repo)
+1. Logo-Integration (wartet auf Logo-Push durch Betreiber)
+2. Alle V2.5 TASK_QUEUE Aufgaben erledigt

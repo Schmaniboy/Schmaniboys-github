@@ -31,7 +31,7 @@
 
 ## Prioritaet 6 — Fahrzeugkatalog
 
-- [ ] Katalogstruktur V2.5 pruefen (Marke→Modell→Generation→Facelift→Baujahr→Karosserie→Variante)
+- [x] Katalogstruktur V2.5 pruefen (Marke→Modell→Generation→Facelift→Baujahr→Karosserie→Variante)
 
 ## Prioritaet 9 — Verkaufsbereich
 
@@ -54,10 +54,10 @@
 
 ## Prioritaet 11 — Admin
 
-- [ ] Admin-Bereich vereinfachen (V2.5 #45)
+- [x] Admin-Bereich vereinfachen (V2.5 #45)
 
 ## Prioritaet 12 — Performance / Feinschliff
 
-- [ ] Performance-Audit (V2.5 #49)
-- [ ] CARONEX-START.bat verbessern (V2.5 #51)
-- [ ] CARONEX-UPDATE.bat verbessern (V2.5 #52)
+- [x] Performance-Audit (V2.5 #49)
+- [x] CARONEX-START.bat verbessern (V2.5 #51)
+- [x] CARONEX-UPDATE.bat verbessern (V2.5 #52)

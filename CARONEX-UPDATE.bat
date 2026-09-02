@@ -100,6 +100,32 @@ if exist ".env" (
     echo  .env nach apps\web\ synchronisiert.
 )
 
+:: ──────────────────────────────────────────────
+:: 10. TypeScript pruefen
+:: ──────────────────────────────────────────────
+echo.
+echo  Pruefe TypeScript...
+call %PKG_MGR% run typecheck
+if %errorlevel% neq 0 (
+    echo  [WARNUNG] TypeScript-Fehler gefunden.
+    echo            Bitte vor dem Start beheben.
+) else (
+    echo  TypeScript: OK
+)
+
+:: ──────────────────────────────────────────────
+:: 11. Build pruefen
+:: ──────────────────────────────────────────────
+echo.
+echo  Pruefe Build...
+call %PKG_MGR% run build
+if %errorlevel% neq 0 (
+    echo  [WARNUNG] Build fehlgeschlagen.
+    echo            Bitte vor dem Start beheben.
+) else (
+    echo  Build: OK
+)
+
 echo.
 echo  ════════════════════════════════════════════════
 echo   Update abgeschlossen!
