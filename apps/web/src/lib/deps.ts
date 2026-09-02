@@ -1,7 +1,10 @@
 import type {
   AdminUserDeps,
   AuthDeps,
+  DealerMemberDeps,
   EmailVerificationRepository,
+  MessagingDeps,
+  ModerationDeps,
   PasswordResetRepository,
   SessionRepository,
   TokenDeps,
@@ -23,7 +26,19 @@ import {
   findUserRole,
   findeToken,
   markiereEmailBestaetigt,
+  addDealerMember,
+  countRecentMessages,
+  findOwnConversation,
+  listDealerMembers,
+  listMessages,
+  markConversationRead,
+  moderateListing,
+  moderateMessage,
   registerFailedLogin,
+  removeDealerMember,
+  sendMessage,
+  setConversationState,
+  setDealerMemberRole,
   setUserRole,
   setUserStatus,
   setzePasswortUndBeendeSitzungen,
@@ -105,6 +120,45 @@ export const adminUserDeps: AdminUserDeps = {
   setUserRole,
   setUserStatus,
   audit: auditLogger,
+};
+
+// ---------------------------------------------------------------------------
+// Moderation
+// ---------------------------------------------------------------------------
+
+export const moderationDeps: ModerationDeps = {
+  moderation: { moderateListing, moderateMessage },
+  audit: auditLogger,
+  clock: systemClock,
+};
+
+// ---------------------------------------------------------------------------
+// Haendler-Mitarbeiter
+// ---------------------------------------------------------------------------
+
+export const dealerMemberDeps: DealerMemberDeps = {
+  members: {
+    listMembers: listDealerMembers,
+    addMember: addDealerMember,
+    setMemberRole: setDealerMemberRole,
+    removeMember: removeDealerMember,
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Nachrichten
+// ---------------------------------------------------------------------------
+
+export const messagingDeps: MessagingDeps = {
+  conversations: {
+    findOwnConversation,
+    listMessages,
+    markConversationRead,
+    countRecentMessages,
+    sendMessage,
+    setConversationState,
+  },
+  clock: systemClock,
 };
 
 /**

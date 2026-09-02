@@ -2,43 +2,33 @@ import { z } from 'zod';
 
 import {
   Permission,
-  dealerMemberInviteInput,
-  dealerMemberRoleInput,
-  errors,
-  requireSameDealer,
+  changeDealerMemberRole,
+  inviteDealerMember,
+  listDealerStaff,
+  removeDealerMemberUseCase,
 } from '@ap/core';
-import {
-  addDealerMember,
-  listDealerMembers,
-  removeDealerMember,
-  setDealerMemberRole,
-} from '@ap/db';
 
 import { created, noContent, ok, route } from '@/lib/api';
+import { dealerMemberDeps } from '@/lib/deps';
 
-/**
- * Mitarbeiter eines Betriebs.
- *
- * Aufgenommen werden koennen nur Personen, die sich selbst registriert
- * haben. Konten fuer andere anzulegen ist ausdruecklich nicht vorgesehen:
- * Sonst legte ein Betrieb Konten mit fremden E-Mail-Adressen an, und die
- * betroffene Person erfuehre davon nichts.
- */
+const rawBody = z.object({}).passthrough();
+
 export const GET = route(
   async (context) => {
-    const dealerId = context.principal?.dealerId;
-    requireSameDealer(context.principal, dealerId);
-    return ok({ members: await listDealerMembers(dealerId as string) });
+    const members = await listDealerStaff(dealerMemberDeps, context.principal);
+    return ok({ members });
   },
   { permission: Permission.DEALER_STAFF_MANAGE },
 );
 
 export const POST = route(
   async (context) => {
-    const dealerId = context.principal?.dealerId;
-    requireSameDealer(context.principal, dealerId);
-    const { email, role } = await context.body(dealerMemberInviteInput);
-    return created({ member: await addDealerMember(dealerId as string, email, role) });
+    const member = await inviteDealerMember(
+      dealerMemberDeps,
+      context.principal,
+      await context.body(rawBody),
+    );
+    return created({ member });
   },
   {
     permission: Permission.DEALER_STAFF_MANAGE,
@@ -48,20 +38,12 @@ export const POST = route(
 
 export const PATCH = route(
   async (context) => {
-    const dealerId = context.principal?.dealerId;
-    const handelnde = requireSameDealer(context.principal, dealerId);
-    const { userId, role } = await context.body(dealerMemberRoleInput);
-
-    // Sich selbst herabzustufen ist der schnellste Weg, sich auszusperren.
-    if (userId === handelnde.userId && role === 'DEALER_STAFF') {
-      throw errors.conflict(
-        'Die eigene Rolle lässt sich hier nicht herabstufen. Bitte von einem anderen ' +
-          'Inhaber ändern lassen.',
-      );
-    }
-
-    await setDealerMemberRole(dealerId as string, userId, role);
-    return ok({ userId, role });
+    const ergebnis = await changeDealerMemberRole(
+      dealerMemberDeps,
+      context.principal,
+      await context.body(rawBody),
+    );
+    return ok(ergebnis);
   },
   {
     permission: Permission.DEALER_STAFF_MANAGE,
@@ -69,24 +51,11 @@ export const PATCH = route(
   },
 );
 
-const entfernen = z.object({ userId: z.string().min(1) });
-
 export const DELETE = route(
   async (context) => {
-    const dealerId = context.principal?.dealerId;
-    const handelnde = requireSameDealer(context.principal, dealerId);
-    const { userId } = entfernen.parse({
+    await removeDealerMemberUseCase(dealerMemberDeps, context.principal, {
       userId: context.request.nextUrl.searchParams.get('userId') ?? '',
     });
-
-    if (userId === handelnde.userId) {
-      throw errors.conflict(
-        'Sich selbst aus dem Betrieb zu entfernen ist hier nicht vorgesehen. Bitte von ' +
-          'einem anderen Inhaber entfernen lassen.',
-      );
-    }
-
-    await removeDealerMember(dealerId as string, userId);
     return noContent();
   },
   {
