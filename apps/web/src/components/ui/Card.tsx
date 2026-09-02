@@ -14,7 +14,7 @@ export function Card({
   return (
     <Element
       className={cn(
-        'rounded-lg border border-line bg-surface-2 transition-all duration-200 ease-out',
+        'glass-card rounded-xl',
         className,
       )}
     >

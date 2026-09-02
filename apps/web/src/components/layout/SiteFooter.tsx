@@ -33,8 +33,8 @@ const COLUMNS = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative border-t border-line bg-surface-1">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+    <footer className="relative border-t border-glass-border bg-glass-strong backdrop-blur-xl">
+      <div className="section-divider absolute inset-x-0 top-0" />
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4 sm:px-6">
         <div className="space-y-3">
           <div className="flex items-center gap-2.5">

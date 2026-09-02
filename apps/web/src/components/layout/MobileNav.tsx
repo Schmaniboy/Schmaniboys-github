@@ -83,7 +83,7 @@ export function MobileNav({ items }: { items: MobileNavItem[] }) {
         <div
           id="mobile-navigation"
           ref={panelRef}
-          className="fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-line bg-surface-0 px-4 pb-6 pt-2 shadow-lg"
+          className="fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-glass-border bg-glass-strong backdrop-blur-2xl px-4 pb-6 pt-2 shadow-overlay"
         >
           <nav aria-label="Hauptnavigation">
             <ul className="flex flex-col">

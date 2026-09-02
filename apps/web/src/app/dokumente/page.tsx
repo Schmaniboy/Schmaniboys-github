@@ -90,7 +90,7 @@ export default function DokumentePage() {
         ))}
       </div>
 
-      <div className="mt-12 rounded-lg border border-line bg-surface-1 p-6">
+      <div className="mt-12 glass-card rounded-xl p-6">
         <p className="text-xs leading-relaxed text-ink-subtle">
           <strong>Rechtshinweis:</strong> Die hier angebotenen Vorlagen sind
           Arbeitshilfen und ersetzen keine individuelle Rechtsberatung. CARONEX

@@ -3,8 +3,8 @@
 > Letzter Arbeitsstand. Bei Context Reset zuerst lesen.
 
 **Stand:** 2026-09-02
-**Aktueller Bereich:** V2.5 Umsetzung — Prio 10 Dokumente erledigt, weiter mit Prio 5 Design/UX
-**Aktuelle Aufgabe:** Premium Dark Design (V2.5 #15)
+**Aktueller Bereich:** V2.5 Umsetzung — Prio 5 Design/UX erledigt, weiter mit Prio 6 Fahrzeugkatalog
+**Aktuelle Aufgabe:** Katalogstruktur V2.5 pruefen (Prio 6)
 
 ## Erledigte Aufgaben (diese Session)
 
@@ -25,11 +25,12 @@
 - [x] Kaeufer-Checkliste V2.5-konform: interaktiver OK/Auffaellig/Nicht-geprueft Status, Sterne-Bewertungen, Freitext bei Auffaellig, Zuruecksetzen-Funktion
 - [x] Fahrzeugbericht V2.5-konform: Datenquellen-Trennung (CARONEX-Daten / Nutzerangaben / Persoenliche Bewertung), Sterne-Bewertungen
 - [x] Demo-Dokumente: alle 4 Dokumente mit istDemo-Prop, fiktive Beispieldaten, DemoBanner, DEMO-Wasserzeichen, ?demo Query-Parameter, Demo-Links auf Uebersichtsseite
+- [x] Premium Dark Design (V2.5 #15): Glassmorphism globals.css, glass-card/glass-header/glass-input/nav-link/section-divider/auth-bg Klassen, Card/SiteHeader/SiteFooter/MobileNav/Field/PasswordField/Login/Registrierung aktualisiert
+- [x] Login/Registrierung Design: auth-bg Hintergrund, Glass-Card-Wrapper
 
 ## Gerade bearbeitete Dateien
 
-- `apps/web/src/app/globals.css` — Premium Dark Design
-- `apps/web/src/components/layout/SiteHeader.tsx` — Header/Navi Design
+- Keine (Premium Dark Design abgeschlossen)
 
 ## Tests
 
@@ -42,6 +43,7 @@
 
 ## Naechste Aufgabe
 
-1. Premium Dark Design (V2.5 #15) — Header, Cards, Buttons, Glassmorphism
-2. Login/Registrierung Design verbessern
-3. Logo-Integration (wartet auf Logos im Repo)
+1. Katalogstruktur V2.5 pruefen (Prio 6)
+2. Admin-Bereich vereinfachen (Prio 11)
+3. Performance-Audit (Prio 12)
+4. Logo-Integration (wartet auf Logos im Repo)

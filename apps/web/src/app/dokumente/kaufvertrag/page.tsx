@@ -38,7 +38,7 @@ export default async function KaufvertragPage({
         <KaufvertragFormular istDemo={istDemo} />
       </div>
 
-      <div className="mt-10 rounded-lg border border-line bg-surface-1 p-6 print:hidden">
+      <div className="mt-10 glass-card rounded-xl p-6 print:hidden">
         <p className="text-xs leading-relaxed text-ink-subtle">
           <strong>Rechtshinweis:</strong> Diese Vorlage ist eine Arbeitshilfe und
           ersetzt keine individuelle Rechtsberatung. CARONEX ist nicht

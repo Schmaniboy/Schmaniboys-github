@@ -36,7 +36,7 @@ export default async function FahrzeugberichtPage({
         <FahrzeugberichtFormular istDemo={istDemo} />
       </div>
 
-      <div className="mt-10 rounded-lg border border-line bg-surface-1 p-6 print:hidden">
+      <div className="mt-10 glass-card rounded-xl p-6 print:hidden">
         <p className="text-xs leading-relaxed text-ink-subtle">
           <strong>Hinweis:</strong> Dieser Bericht ist eine Arbeitshilfe. Technische
           Daten sind vor dem Kauf immer anhand der Fahrzeugpapiere und einer

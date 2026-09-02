@@ -26,8 +26,8 @@
 
 ## Prioritaet 5 — Design / UX
 
-- [ ] Premium Dark Design: Glassmorphism, Glow, Tiefe (V2.5 #15)
-- [ ] Login/Registrierung Design verbessern
+- [x] Premium Dark Design: Glassmorphism, Glow, Tiefe (V2.5 #15)
+- [x] Login/Registrierung Design verbessern
 
 ## Prioritaet 6 — Fahrzeugkatalog
 
