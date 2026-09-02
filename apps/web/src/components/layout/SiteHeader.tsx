@@ -26,7 +26,7 @@ const NAVIGATION = [
 ];
 
 const HAUPTNAVIGATION = NAVIGATION.filter((eintrag) =>
-  ['/katalog', '/suche', '/ausstattung', '/marktplatz', '/verkaufen', '/dokumente'].includes(eintrag.href),
+  ['/katalog', '/suche', '/ausstattung', '/verkaufen', '/dokumente'].includes(eintrag.href),
 );
 
 
