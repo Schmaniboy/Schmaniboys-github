@@ -1,16 +1,12 @@
-import { Permission, createListingInput, listingSearchInput, systemClock } from '@ap/core';
+import { z } from 'zod';
 
-import { createListingFromDraft, listOwnListings, searchListings } from '@ap/db';
+import { Permission, createListing, listingSearchInput, searchPublicListings } from '@ap/core';
 
 import { created, ok, route } from '@/lib/api';
+import { listingDeps } from '@/lib/deps';
 
-/**
- * Anzeigen.
- *
- * GET ohne Anmeldung sucht im oeffentlichen Marktplatz. GET mit
- * `?eigene=true` und Anmeldung liefert die eigenen Anzeigen, auch die
- * unveroeffentlichten.
- */
+const rawBody = z.object({}).passthrough();
+
 export const GET = route(
   async (context) => {
     const eigene = context.request.nextUrl.searchParams.get('eigene') === 'true';
@@ -18,42 +14,18 @@ export const GET = route(
     if (eigene) {
       const userId = context.principal?.userId;
       if (!userId) return ok({ listings: [] });
-      return ok({ listings: await listOwnListings(userId) });
+      return ok({ listings: await listingDeps.listings.listOwnListings(userId) });
     }
 
     const filter = context.query(listingSearchInput);
-    return ok(await searchListings(filter, systemClock.now()));
+    return ok(await searchPublicListings(listingDeps, filter));
   },
   { auth: 'optional' },
 );
 
 export const POST = route(
   async (context) => {
-    const eingabe = await context.body(createListingInput);
-    const userId = context.userId();
-
-    /*
-     * Im Namen eines Haendlers zu inserieren setzt Zugehoerigkeit voraus.
-     * Die Pruefung steht hier und nicht im Formular: Was der Browser
-     * schickt, ist ein Wunsch, keine Tatsache.
-     */
-    const dealerId =
-      eingabe.dealerId && eingabe.dealerId === context.principal?.dealerId
-        ? eingabe.dealerId
-        : null;
-
-    const anzeige = await createListingFromDraft({
-      draftId: eingabe.draftId,
-      sellerId: userId,
-      dealerId,
-      title: eingabe.title,
-      description: eingabe.description,
-      priceCents: eingabe.priceCents,
-      negotiable: eingabe.negotiable,
-      postalCode: eingabe.postalCode,
-      city: eingabe.city,
-    });
-
+    const anzeige = await createListing(listingDeps, context.principal, await context.body(rawBody));
     return created({ listing: anzeige });
   },
   {

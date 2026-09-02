@@ -3,6 +3,7 @@ import type {
   AuthDeps,
   DealerMemberDeps,
   EmailVerificationRepository,
+  ListingDeps,
   MessagingDeps,
   ModerationDeps,
   PasswordResetRepository,
@@ -27,19 +28,31 @@ import {
   findeToken,
   markiereEmailBestaetigt,
   addDealerMember,
+  addFavorite,
+  countRecentConversations,
   countRecentMessages,
+  createListingFromDraft,
+  findListingVisibility,
   findOwnConversation,
+  findOwnListing,
   listDealerMembers,
+  listOwnListings,
   listMessages,
+  listOwnConversations,
   markConversationRead,
   moderateListing,
   moderateMessage,
   registerFailedLogin,
   removeDealerMember,
+  removeFavorite,
+  searchListings,
   sendMessage,
   setConversationState,
   setDealerMemberRole,
+  setListingStatus,
+  startListingConversation,
   setUserRole,
+  updateOwnListing,
   setUserStatus,
   setzePasswortUndBeendeSitzungen,
   stelleTokenAus,
@@ -152,11 +165,33 @@ export const dealerMemberDeps: DealerMemberDeps = {
 export const messagingDeps: MessagingDeps = {
   conversations: {
     findOwnConversation,
+    listOwnConversations,
     listMessages,
     markConversationRead,
     countRecentMessages,
+    countRecentConversations,
     sendMessage,
+    startListingConversation,
     setConversationState,
+  },
+  clock: systemClock,
+};
+
+// ---------------------------------------------------------------------------
+// Anzeigen
+// ---------------------------------------------------------------------------
+
+export const listingDeps: ListingDeps = {
+  listings: {
+    findOwnListing,
+    listOwnListings,
+    updateOwnListing,
+    setListingStatus,
+    searchListings,
+    createListingFromDraft,
+    findListingVisibility,
+    addFavorite,
+    removeFavorite,
   },
   clock: systemClock,
 };

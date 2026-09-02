@@ -216,6 +216,16 @@ export async function createListingFromDraft(input: {
   });
 }
 
+export async function findListingVisibility(
+  listingId: string,
+): Promise<{ status: ListingStatus; expiresAt: Date | null } | null> {
+  const result = await prisma.listing.findUnique({
+    where: { id: listingId },
+    select: { status: true, expiresAt: true },
+  });
+  return result as { status: ListingStatus; expiresAt: Date | null } | null;
+}
+
 /** Eine eigene Anzeige, gleich welchen Zustands. */
 export async function findOwnListing(
   listingId: string,

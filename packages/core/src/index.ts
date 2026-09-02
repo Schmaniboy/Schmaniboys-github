@@ -36,6 +36,7 @@ export * from './usecases/admin-users';
 export * from './usecases/moderation';
 export * from './usecases/dealer-members';
 export * from './usecases/messaging';
+export * from './usecases/listings';
 export * from './usecases/catalog';
 export * from './usecases/wallet';
 export * from './usecases/sales-assistant';

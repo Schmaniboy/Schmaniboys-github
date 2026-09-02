@@ -1,42 +1,20 @@
 import { z } from 'zod';
 
-import {
-  MAX_NEUE_GESPRAECHE_JE_STUNDE,
-  Permission,
-  errors,
-  systemClock,
-} from '@ap/core';
-import { countRecentConversations, listOwnConversations, startListingConversation } from '@ap/db';
+import { Permission, listConversations, startConversation } from '@ap/core';
 
 import { created, ok, route } from '@/lib/api';
+import { messagingDeps } from '@/lib/deps';
 
-const anlegen = z.object({ listingId: z.string().min(1) });
+const rawBody = z.object({}).passthrough();
 
-/**
- * Gespraeche.
- *
- * Die zusaetzliche Zaehlung neuer Gespraeche je Stunde ergaenzt die
- * allgemeine Ratenbegrenzung: Diese zaehlt Aufrufe, jene zaehlt tatsaechlich
- * angelegte Gespraeche. Wer zehn Anzeigen anschreibt, hat etwas vor -- wer
- * hundert anschreibt, etwas anderes.
- */
 export const GET = route(
-  async (context) => ok({ conversations: await listOwnConversations(context.userId()) }),
+  async (context) => ok({ conversations: await listConversations(messagingDeps, context.userId()) }),
   { permission: Permission.MESSAGE_READ_OWN },
 );
 
 export const POST = route(
   async (context) => {
-    const { listingId } = await context.body(anlegen);
-    const userId = context.userId();
-    const jetzt = systemClock.now();
-
-    const seit = new Date(jetzt.getTime() - 60 * 60 * 1000);
-    if ((await countRecentConversations(userId, seit)) >= MAX_NEUE_GESPRAECHE_JE_STUNDE) {
-      throw errors.rateLimited(3600);
-    }
-
-    const gespraech = await startListingConversation({ listingId, initiatorId: userId, jetzt });
+    const gespraech = await startConversation(messagingDeps, context.userId(), await context.body(rawBody));
     return created({ conversation: gespraech });
   },
   {

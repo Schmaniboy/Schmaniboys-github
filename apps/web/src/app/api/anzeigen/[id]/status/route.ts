@@ -1,44 +1,22 @@
 import { z } from 'zod';
 
-import {
-  Permission,
-  errors,
-  ablaufDatum,
-  assertListingTransition,
-  listingStatusInput,
-  systemClock,
-  type ListingStatus,
-} from '@ap/core';
-import { findOwnListing, setListingStatus } from '@ap/db';
+import { Permission, changeListingStatus } from '@ap/core';
 
 import { ok, route } from '@/lib/api';
+import { listingDeps } from '@/lib/deps';
 
 const pfad = z.object({ id: z.string().min(1) });
+const rawBody = z.object({}).passthrough();
 
-/**
- * Veroeffentlichen, pausieren, als verkauft markieren, loeschen.
- *
- * Der erlaubte Wechsel wird in der Domaenenschicht geprueft
- * (`assertListingTransition`), nicht hier. Diese Datei kennt nur den Weg
- * von der Anfrage zur Fachlogik.
- */
 export const PATCH = route(
   async (context) => {
     const { id } = await context.params(pfad);
-    const { status } = await context.body(listingStatusInput);
-    const userId = context.userId();
-
-    const anzeige = await findOwnListing(id, userId);
-    if (!anzeige) throw errors.notFound();
-
-    assertListingTransition(anzeige.status as ListingStatus, status);
-
-    const jetzt = systemClock.now();
-    const aktualisiert = await setListingStatus(id, userId, status, {
-      jetzt,
-      expiresAt: status === 'ACTIVE' ? ablaufDatum(jetzt) : null,
-    });
-
+    const aktualisiert = await changeListingStatus(
+      listingDeps,
+      id,
+      context.userId(),
+      await context.body(rawBody),
+    );
     return ok({ listing: aktualisiert });
   },
   {
