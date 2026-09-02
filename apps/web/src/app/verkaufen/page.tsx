@@ -35,7 +35,7 @@ export default async function VerkaufenPage() {
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <div className="accent-rule mb-6" />
       <p className="eyebrow mb-2">Verkaufen</p>
-      <h1 className="text-3xl font-semibold tracking-tight text-ink">Fahrzeug verkaufen</h1>
+      <h1 className="text-3xl font-bold tracking-tight text-ink">Fahrzeug verkaufen</h1>
       <p className="mt-3 mb-8 text-base leading-relaxed text-ink-muted">
         In sieben Schritten zur professionellen Verkaufsanzeige — Fahrzeugdaten
         eingeben, Zustand beschreiben, Bilder vorbereiten und am Ende ein

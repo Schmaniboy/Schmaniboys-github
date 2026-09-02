@@ -44,7 +44,7 @@ export function SiteHeader() {
             className="h-9 w-auto transition-transform duration-200 group-hover:scale-105"
             priority
           />
-          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-ink">
+          <span className="text-sm font-bold uppercase tracking-[0.22em] text-ink drop-shadow-[0_0_8px_rgba(255,51,85,0.15)]">
             CARONEX
           </span>
         </Link>

@@ -45,7 +45,7 @@ export default function DokumentePage() {
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <div className="accent-rule mb-6" />
       <p className="eyebrow mb-2">Dokumente</p>
-      <h1 className="text-3xl font-semibold tracking-tight text-ink">
+      <h1 className="text-3xl font-bold tracking-tight text-ink">
         Vorlagen und Unterlagen
       </h1>
       <p className="mt-3 text-base leading-relaxed text-ink-muted">

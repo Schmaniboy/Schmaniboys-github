@@ -82,9 +82,9 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-line bg-surface-1">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,51,85,0.12),transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_85%_50%,rgba(255,51,85,0.06),transparent)]" />
+      <section className="relative overflow-hidden border-b border-glass-border bg-surface-1">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,51,85,0.18),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_85%_50%,rgba(255,51,85,0.08),transparent)]" />
         {/* Logo als grosses Hintergrund-Element — Desktop */}
         <div className="pointer-events-none absolute right-[2%] top-1/2 hidden -translate-y-1/2 select-none lg:block xl:right-[6%]">
           <Image
@@ -135,7 +135,7 @@ export default async function HomePage() {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {BEREICHE.map((bereich, i) => (
-            <Card key={bereich.titel} as="article" className="group hover:border-line-interactive hover:shadow-raised hover:-translate-y-0.5">
+            <Card key={bereich.titel} as="article" className="group glass-card-glow">
               <CardBody className="flex h-full flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent/10 text-xs font-bold text-accent transition-colors group-hover:bg-accent/20">
@@ -157,8 +157,8 @@ export default async function HomePage() {
       </section>
 
       {/* Philosophy */}
-      <section className="relative border-t border-line bg-surface-1">
-        <div className="absolute right-0 top-0 h-full w-1/3 bg-[radial-gradient(ellipse_at_100%_0%,rgba(255,51,85,0.04),transparent)]" />
+      <section className="relative border-t border-glass-border bg-surface-1">
+        <div className="absolute right-0 top-0 h-full w-1/3 bg-[radial-gradient(ellipse_at_100%_0%,rgba(255,51,85,0.08),transparent)]" />
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6">
           <div className="max-w-2xl">
             <div className="accent-rule mb-6" />
@@ -186,7 +186,7 @@ export default async function HomePage() {
       </section>
 
       {/* Stats */}
-      <section className="border-t border-line">
+      <section className="border-t border-glass-border">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
             {[

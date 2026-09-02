@@ -3,8 +3,8 @@
 > Letzter Arbeitsstand. Bei Context Reset zuerst lesen.
 
 **Stand:** 2026-09-02
-**Aktueller Bereich:** V2.5 TASK_QUEUE vollstaendig abgearbeitet
-**Aktuelle Aufgabe:** Alle Aufgaben erledigt (ausser Logo-Integration, wartet auf Betreiber)
+**Aktueller Bereich:** V2.5 Premium Dark Design verstaerkt
+**Aktuelle Aufgabe:** Glassmorphism-Werte drastisch verstaerkt fuer sichtbare Unterschiede
 
 ## Erledigte Aufgaben (diese Session)
 
@@ -31,10 +31,14 @@
 - [x] Admin-Bereich: bereits einfach und uebersichtlich, Glassmorphism-Kacheln
 - [x] Performance-Audit: 45 Client-Komponenten alle berechtigt, keine Barrel-Import-Verletzung, sharp installiert, prefers-reduced-motion vorhanden
 - [x] CARONEX-UPDATE.bat: TypeScript- und Build-Pruefung ergaenzt
+- [x] Premium Dark Design verstaerkt: Glass-Werte drastisch erhoeht, sichtbare Glassmorphism-Karten, staerkere Borders/Shadows/Glows, Header-Shadow, Auth-bg-Gradient, Accent-Rule-Glow
 
 ## Gerade bearbeitete Dateien
 
-- Keine (Premium Dark Design abgeschlossen)
+- globals.css (Glassmorphism-Tokens und Klassen verstaerkt)
+- Card.tsx, SiteHeader.tsx, SiteFooter.tsx (staerkere visuelle Behandlung)
+- anmelden/page.tsx, registrieren/page.tsx (groessere Rundung, mehr Padding)
+- page.tsx (Homepage Hero/Cards/Sections verstaerkt)
 
 ## Tests
 

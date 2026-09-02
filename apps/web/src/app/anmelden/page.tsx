@@ -16,9 +16,9 @@ export const metadata: Metadata = { title: 'Anmelden' };
 export default function LoginPage() {
   return (
     <div className="auth-bg flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-8">
-      <div className="glass-card w-full max-w-md rounded-xl p-8">
+      <div className="glass-card w-full max-w-md rounded-2xl p-10 shadow-[0_0_60px_rgba(0,0,0,0.5)]">
         <div className="accent-rule mb-6" />
-        <h1 className="text-2xl font-semibold text-ink">Anmelden</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-ink">Anmelden</h1>
         <p className="mt-2 text-sm text-ink-muted">
           Noch kein Konto?{' '}
           <Link href="/registrieren" className="text-accent hover:text-accent-strong">

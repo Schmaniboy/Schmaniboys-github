@@ -45,7 +45,7 @@ export function SiteFooter() {
               height={43}
               className="h-10 w-auto"
             />
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ink">CARONEX</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-ink">CARONEX</p>
           </div>
           <p className="max-w-xs text-sm text-ink-subtle">
             Fahrzeugwissen und Fahrzeugverkauf an einem Ort. Technische Angaben
@@ -72,7 +72,7 @@ export function SiteFooter() {
         ))}
       </div>
 
-      <div className="border-t border-line">
+      <div className="border-t border-glass-border">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
           <p className="text-xs text-ink-subtle">
             &copy; {new Date().getFullYear()} CARONEX

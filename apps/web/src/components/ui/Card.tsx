@@ -36,7 +36,7 @@ export function CardHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-4">
+    <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 border-b border-glass-border px-6 py-5">
       <div className="min-w-0">
         {eyebrow ? <p className="eyebrow mb-1">{eyebrow}</p> : null}
         <h2 className="text-base font-semibold text-ink">{title}</h2>
@@ -56,5 +56,5 @@ export function CardBody({
   children: ReactNode;
   className?: string;
 }) {
-  return <div className={cn('px-5 py-4', className)}>{children}</div>;
+  return <div className={cn('px-6 py-5', className)}>{children}</div>;
 }
