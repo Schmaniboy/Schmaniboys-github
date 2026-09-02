@@ -2,6 +2,7 @@ import type {
   AdminUserDeps,
   AuthDeps,
   DealerMemberDeps,
+  DealerProfileDeps,
   EmailVerificationRepository,
   ListingDeps,
   MessagingDeps,
@@ -32,6 +33,7 @@ import {
   countRecentConversations,
   countRecentMessages,
   createListingFromDraft,
+  findDealer,
   findListingVisibility,
   findOwnConversation,
   findOwnListing,
@@ -45,6 +47,7 @@ import {
   registerFailedLogin,
   removeDealerMember,
   removeFavorite,
+  replaceOpeningHours,
   searchListings,
   sendMessage,
   setConversationState,
@@ -52,6 +55,7 @@ import {
   setListingStatus,
   startListingConversation,
   setUserRole,
+  updateDealerProfile,
   updateOwnListing,
   setUserStatus,
   setzePasswortUndBeendeSitzungen,
@@ -155,6 +159,18 @@ export const dealerMemberDeps: DealerMemberDeps = {
     addMember: addDealerMember,
     setMemberRole: setDealerMemberRole,
     removeMember: removeDealerMember,
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Haendlerprofil
+// ---------------------------------------------------------------------------
+
+export const dealerProfileDeps: DealerProfileDeps = {
+  dealers: {
+    findDealer,
+    updateDealerProfile,
+    replaceOpeningHours,
   },
 };
 
