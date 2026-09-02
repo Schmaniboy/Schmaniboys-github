@@ -6,28 +6,28 @@ import { Card, CardBody } from '@/components/ui/Card';
 export const metadata: Metadata = {
   title: 'Dokumente',
   description:
-    'Kaufvertrag, Übergabeprotokoll, Käufer-Checkliste und Fahrzeugbericht — als Vorlage zum Ausfüllen.',
+    'Kaufvertrag, Uebergabeprotokoll, Kaeufer-Checkliste und Fahrzeugbericht — als Vorlage zum Ausfuellen.',
 };
 
 const DOKUMENTE = [
   {
     titel: 'Kaufvertrag',
     beschreibung:
-      'Vorlage für einen privaten Gebrauchtwagenverkauf. Enthält Angaben zu Verkäufer, Käufer, Fahrzeug und Zahlungsbedingungen.',
+      'Vorlage fuer den Gebrauchtwagenverkauf (Privat oder Gewerblich). Online ausfuellen, drucken, unterschreiben.',
     href: '/dokumente/kaufvertrag',
     verfuegbar: true,
   },
   {
-    titel: 'Übergabeprotokoll',
+    titel: 'Uebergabeprotokoll',
     beschreibung:
-      'Dokumentiert den Zustand des Fahrzeugs bei Übergabe: Mängel, Kratzer, Zubehör, Kilometerstand, Schlüssel.',
+      'Dokumentiert den Zustand des Fahrzeugs bei Uebergabe: Maengel, Kratzer, Zubehoer, Kilometerstand.',
     href: '/dokumente/uebergabeprotokoll',
     verfuegbar: true,
   },
   {
-    titel: 'Käufer-Checkliste',
+    titel: 'Kaeufer-Checkliste',
     beschreibung:
-      'Worauf vor dem Kauf eines Gebrauchtwagens zu achten ist. Prüfpunkte für Probefahrt, Papiere, Zustand.',
+      'Worauf vor dem Kauf eines Gebrauchtwagens zu achten ist. Interaktive Pruefpunkte fuer Probefahrt, Papiere, Zustand.',
     href: '/dokumente/kaeufer-checkliste',
     verfuegbar: true,
   },
@@ -65,12 +65,20 @@ export default function DokumentePage() {
                   </p>
                 </div>
                 {dok.verfuegbar ? (
-                  <Link
-                    href={dok.href}
-                    className="shrink-0 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-ink transition-colors hover:bg-accent-strong"
-                  >
-                    Öffnen
-                  </Link>
+                  <div className="flex shrink-0 gap-2">
+                    <Link
+                      href={dok.href}
+                      className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-ink transition-colors hover:bg-accent-strong"
+                    >
+                      Oeffnen
+                    </Link>
+                    <Link
+                      href={`${dok.href}?demo`}
+                      className="rounded-md border border-caution/40 px-3 py-2 text-sm font-medium text-caution transition-colors hover:bg-caution/10"
+                    >
+                      Demo
+                    </Link>
+                  </div>
                 ) : (
                   <span className="shrink-0 rounded-md border border-line px-4 py-2 text-sm text-ink-subtle">
                     In Arbeit

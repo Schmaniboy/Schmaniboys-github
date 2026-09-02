@@ -9,7 +9,14 @@ export const metadata: Metadata = {
     'Zusammenfassung aller relevanten Daten zu einem Fahrzeug: Generation, Motor, Ausstattung, Schwachstellen, Wartung, Kosten.',
 };
 
-export default function FahrzeugberichtPage() {
+export default async function FahrzeugberichtPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const istDemo = params.demo !== undefined;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 print:py-4">
       <div className="print:hidden">
@@ -17,24 +24,24 @@ export default function FahrzeugberichtPage() {
       </div>
       <div className="accent-rule mb-6 print:hidden" />
       <p className="eyebrow mb-2 print:hidden">Dokumente</p>
-      <h1 className="text-3xl font-semibold tracking-tight text-ink">
+      <h1 className="text-3xl font-semibold tracking-tight text-ink print:hidden">
         Fahrzeugbericht
       </h1>
-      <p className="mt-3 text-base leading-relaxed text-ink-muted">
+      <p className="mt-3 text-base leading-relaxed text-ink-muted print:hidden">
         Alle wichtigen Daten zu einem Fahrzeug auf einen Blick. Vor dem Kauf
-        ausfüllen und mit dem Angebot abgleichen.
+        ausfuellen und mit dem Angebot abgleichen.
       </p>
 
       <div className="mt-8">
-        <FahrzeugberichtFormular />
+        <FahrzeugberichtFormular istDemo={istDemo} />
       </div>
 
       <div className="mt-10 rounded-lg border border-line bg-surface-1 p-6 print:hidden">
         <p className="text-xs leading-relaxed text-ink-subtle">
           <strong>Hinweis:</strong> Dieser Bericht ist eine Arbeitshilfe. Technische
           Daten sind vor dem Kauf immer anhand der Fahrzeugpapiere und einer
-          professionellen Prüfung zu verifizieren. CARONEX übernimmt keine Gewähr
-          für Vollständigkeit oder Richtigkeit.
+          professionellen Pruefung zu verifizieren. CARONEX uebernimmt keine Gewaehr
+          fuer Vollstaendigkeit oder Richtigkeit.
         </p>
       </div>
     </div>

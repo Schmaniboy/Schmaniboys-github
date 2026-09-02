@@ -3,8 +3,8 @@
 > Letzter Arbeitsstand. Bei Context Reset zuerst lesen.
 
 **Stand:** 2026-09-02
-**Aktueller Bereich:** V2.5 Umsetzung — Prio 10 Dokumente (4/5 erledigt), weiter mit Demo-Dokumente + Prio 5
-**Aktuelle Aufgabe:** Demo-Dokumente (V2.5 #44), dann Premium Dark Design (V2.5 #15)
+**Aktueller Bereich:** V2.5 Umsetzung — Prio 10 Dokumente erledigt, weiter mit Prio 5 Design/UX
+**Aktuelle Aufgabe:** Premium Dark Design (V2.5 #15)
 
 ## Erledigte Aufgaben (diese Session)
 
@@ -24,15 +24,12 @@
 - [x] Uebergabeprotokoll V2.5-konform: online ausfuellbar, Kaeufer/Verkaeufer-Felder, sichtbare Schaeden, Zubehoer, Vereinbarungen
 - [x] Kaeufer-Checkliste V2.5-konform: interaktiver OK/Auffaellig/Nicht-geprueft Status, Sterne-Bewertungen, Freitext bei Auffaellig, Zuruecksetzen-Funktion
 - [x] Fahrzeugbericht V2.5-konform: Datenquellen-Trennung (CARONEX-Daten / Nutzerangaben / Persoenliche Bewertung), Sterne-Bewertungen
+- [x] Demo-Dokumente: alle 4 Dokumente mit istDemo-Prop, fiktive Beispieldaten, DemoBanner, DEMO-Wasserzeichen, ?demo Query-Parameter, Demo-Links auf Uebersichtsseite
 
 ## Gerade bearbeitete Dateien
 
-- `apps/web/src/components/dokumente/KaufvertragFormular.tsx` — Online-ausfuellbarer Kaufvertrag
-- `apps/web/src/components/dokumente/UebergabeprotokollFormular.tsx` — Online-ausfuellbares Protokoll
-- `apps/web/src/components/dokumente/KaeuferCheckliste.tsx` — Interaktive Checkliste mit Status
-- `apps/web/src/components/dokumente/FahrzeugberichtFormular.tsx` — Bericht mit Datenquellen-Tags
-- `apps/web/src/app/dokumente/kaufvertrag/page.tsx` — Seite aktualisiert
-- `apps/web/src/app/dokumente/page.tsx` — Uebersicht aktualisiert
+- `apps/web/src/app/globals.css` — Premium Dark Design
+- `apps/web/src/components/layout/SiteHeader.tsx` — Header/Navi Design
 
 ## Tests
 
@@ -45,7 +42,6 @@
 
 ## Naechste Aufgabe
 
-1. Demo-Dokumente (V2.5 #44) — DEMO-Kennzeichnung
-2. Premium Dark Design (V2.5 #15)
-3. Login/Registrierung Design verbessern
-4. Logo-Integration (wartet auf Logos im Repo)
+1. Premium Dark Design (V2.5 #15) — Header, Cards, Buttons, Glassmorphism
+2. Login/Registrierung Design verbessern
+3. Logo-Integration (wartet auf Logos im Repo)

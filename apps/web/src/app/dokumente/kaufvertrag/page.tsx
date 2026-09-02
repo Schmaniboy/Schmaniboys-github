@@ -9,7 +9,14 @@ export const metadata: Metadata = {
     'Vorlage fuer einen Gebrauchtwagen-Kaufvertrag. Online ausfuellen, drucken, unterschreiben.',
 };
 
-export default function KaufvertragPage() {
+export default async function KaufvertragPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const istDemo = params.demo !== undefined;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 print:py-4">
       <div className="print:hidden">
@@ -28,7 +35,7 @@ export default function KaufvertragPage() {
       </p>
 
       <div className="mt-8">
-        <KaufvertragFormular />
+        <KaufvertragFormular istDemo={istDemo} />
       </div>
 
       <div className="mt-10 rounded-lg border border-line bg-surface-1 p-6 print:hidden">

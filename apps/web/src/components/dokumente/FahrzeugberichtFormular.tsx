@@ -4,14 +4,30 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 
+function DemoBanner() {
+  return (
+    <div className="mb-6 rounded-lg border-2 border-dashed border-caution bg-caution/10 px-4 py-3 text-center print:mb-4 print:border-caution/50">
+      <p className="text-sm font-bold uppercase tracking-widest text-caution">
+        DEMO — Beispieldokument mit fiktiven Daten
+      </p>
+      <p className="mt-1 text-xs text-caution/80">
+        Keine echten Personen- oder Fahrzeugdaten. Nicht fuer den
+        Rechtsverkehr bestimmt.
+      </p>
+    </div>
+  );
+}
+
 function FeldInput({
   label,
   breit,
   mehrzeilig,
+  vorgabe,
 }: {
   label: string;
   breit?: boolean;
   mehrzeilig?: boolean;
+  vorgabe?: string;
 }) {
   return (
     <div className={breit ? 'col-span-2' : ''}>
@@ -20,12 +36,14 @@ function FeldInput({
       </label>
       {mehrzeilig ? (
         <textarea
+          defaultValue={vorgabe}
           className="mt-1 w-full resize-none border-b border-ink-subtle/30 bg-transparent pb-2 text-sm text-ink outline-none focus:border-accent print:pb-1 print:text-xs"
           rows={3}
         />
       ) : (
         <input
           type="text"
+          defaultValue={vorgabe}
           className="mt-1 w-full border-b border-ink-subtle/30 bg-transparent pb-2 text-sm text-ink outline-none focus:border-accent print:pb-1 print:text-xs"
         />
       )}
@@ -106,13 +124,93 @@ function SterneBewertung({
   );
 }
 
-export function FahrzeugberichtFormular() {
-  const [bewertungen, setBewertungen] = useState({
-    gesamteindruck: 0,
-    zustand: 0,
-    preisLeistung: 0,
-    alltagstauglichkeit: 0,
-  });
+function TabelleInput({ vorgabe }: { vorgabe?: string }) {
+  return (
+    <input
+      type="text"
+      defaultValue={vorgabe}
+      className="w-full border-b border-ink-subtle/30 bg-transparent pb-1 text-sm outline-none focus:border-accent print:border-none print:text-xs"
+    />
+  );
+}
+
+const DEMO_DATEN = {
+  hersteller: 'BMW', modell: '320i', generation: '3er (F30)',
+  baureihenkuerzel: 'F30', karosserie: 'Limousine',
+  bauzeitraum: '2011 – 2019', facelift: 'LCI (ab 2015)',
+  modelljahr: '2019',
+  motorHandelsname: '320i', motorcode: 'B48B20',
+  motorfamilie: 'B48', kraftstoff: 'Benzin',
+  hubraum: '1.998', zylinder: '4 / Reihe',
+  aufladung: 'Turbo (Twin-Scroll)', einspritzung: 'Direkteinspritzung',
+  leistung: '135 kW / 184 PS', drehmoment: '270 Nm bei 1.350 U/min',
+  getriebe: '8-Gang Automatik (ZF 8HP)', antrieb: 'Hinterradantrieb',
+  abgasnorm: 'Euro 6d-TEMP', ventiltrieb: 'DOHC, Valvetronic + Doppel-VANOS',
+  beschleunigung: '7,1', hoechstgeschwindigkeit: '235',
+  verbrauch: '5,7', co2: '130',
+  tankinhalt: '60', leergewicht: '1.465',
+  km: '87.500', erstzulassung: '03/2019', vorbesitzer: '1',
+  letzteHu: '03/2025', scheckheft: 'Ja, lueckenlos',
+  unfallhistorie: 'Unfallfrei laut Verkaeufer',
+  maengel: 'Keine bekannt',
+  reparaturen: 'Bremsbelaege vorne erneuert bei 72.000 km (12/2024)',
+  zustandText: 'Lack gut, leichte Steinschlaege an der Front. Innenraum gepflegt, leichter Verschleiss am Fahrersitz. Technik ohne Auffaelligkeiten.',
+  sonstiges: 'Nichtraucher-Fahrzeug. Immer in Garage gestanden.',
+  steuer: '142', typklasseHp: '15', typklasseTk: '19', typklasseVk: '21',
+  inspektionKlein: '250 – 350', inspektionGross: '450 – 600',
+  verschleiss: 'Bremsbelaege vorne ca. 180 Euro, hinten ca. 150 Euro. Oelwechsel ca. 120 Euro.',
+  preisSpanne: '18.000 – 28.000',
+  laufleistungAngebot: '60.000 – 120.000',
+  marktangebot: 'Viel',
+  wertentwicklung: 'Leicht fallend',
+  empfehlung: 'Solides Alltagsfahrzeug mit gutem Motor. Der B48 ist ausgereift und zuverlaessig. Bei regelmaessiger Wartung wenig Probleme zu erwarten. Preis im mittleren Marktsegment.',
+  fazit: 'Guter Gesamteindruck. Motor und Getriebe ueberzeugen, Wartungskosten moderat. Steinschlag pruefen lassen. Kaufempfehlung bei Preisverhandlung.',
+  schwachstelle1Bauteil: 'Steuerkette (N20-Motor, nicht B48)',
+  schwachstelle1Schwere: 'Hoch (nur N20)',
+  schwachstelle1Symptome: 'Rasseln beim Kaltstart, Motorkontrollleuchte. Betrifft Vorgaengermotor N20, nicht den B48.',
+  schwachstelle1Km: 'Ab 80.000 km (N20)',
+  schwachstelle1Baujahre: '2011 – 2015 (N20)',
+  schwachstelle1Abhilfe: 'Steuerkette und Spanner erneuern. Beim B48 (ab 2015/16) kein bekanntes Problem.',
+  schwachstelle2Bauteil: 'Kuehlsystem (Thermostat, Wasserpumpe)',
+  schwachstelle2Schwere: 'Mittel',
+  schwachstelle2Symptome: 'Schwankende Temperaturanzeige, Kuehlmittelverlust, Warnmeldung im Display',
+  schwachstelle2Km: 'Ab 60.000 km',
+  schwachstelle2Baujahre: '2012 – 2019',
+  schwachstelle2Abhilfe: 'Thermostat und/oder Wasserpumpe tauschen (ca. 300 – 500 Euro)',
+  wartungOelKm: '15.000', wartungOelMonate: '24',
+  wartungOelfilterKm: '15.000', wartungOelfilterMonate: '24',
+  wartungLuftfilterKm: '40.000', wartungLuftfilterMonate: '48',
+  wartungBremsfluessigkeitKm: '-', wartungBremsfluessigkeitMonate: '24',
+  wartungSteuerketteKm: 'Wartungsfrei (B48)', wartungSteuerketteMonate: '-',
+  wartungKuehlmittelKm: '60.000', wartungKuehlmittelMonate: '48',
+  wartungZuendkerzenKm: '60.000', wartungZuendkerzenMonate: '48',
+  wartungGetriebeKm: '100.000', wartungGetriebeMonate: '-',
+};
+
+const DEMO_BEWERTUNGEN = {
+  gesamteindruck: 4,
+  zustand: 4,
+  preisLeistung: 3,
+  alltagstauglichkeit: 5,
+};
+
+export function FahrzeugberichtFormular({ istDemo }: { istDemo?: boolean }) {
+  const d = istDemo ? DEMO_DATEN : undefined;
+
+  const [bewertungen, setBewertungen] = useState(
+    istDemo ? DEMO_BEWERTUNGEN : { gesamteindruck: 0, zustand: 0, preisLeistung: 0, alltagstauglichkeit: 0 },
+  );
+
+  const wartungsDaten = [
+    { aufgabe: 'Motoroel wechseln', km: d?.wartungOelKm, monate: d?.wartungOelMonate },
+    { aufgabe: 'Oelfilter wechseln', km: d?.wartungOelfilterKm, monate: d?.wartungOelfilterMonate },
+    { aufgabe: 'Luftfilter wechseln', km: d?.wartungLuftfilterKm, monate: d?.wartungLuftfilterMonate },
+    { aufgabe: 'Bremsfluessigkeit wechseln', km: d?.wartungBremsfluessigkeitKm, monate: d?.wartungBremsfluessigkeitMonate },
+    { aufgabe: 'Zahnriemen / Steuerkette pruefen', km: d?.wartungSteuerketteKm, monate: d?.wartungSteuerketteMonate },
+    { aufgabe: 'Kuehlmittel wechseln', km: d?.wartungKuehlmittelKm, monate: d?.wartungKuehlmittelMonate },
+    { aufgabe: 'Zuendkerzen wechseln', km: d?.wartungZuendkerzenKm, monate: d?.wartungZuendkerzenMonate },
+    { aufgabe: 'Getriebeoel wechseln', km: d?.wartungGetriebeKm, monate: d?.wartungGetriebeMonate },
+  ];
 
   return (
     <>
@@ -121,6 +219,8 @@ export function FahrzeugberichtFormular() {
           Drucken / Als PDF speichern
         </Button>
       </div>
+
+      {istDemo && <DemoBanner />}
 
       <div className="mb-4 flex flex-wrap gap-4 rounded-lg border border-line bg-surface-1 px-4 py-3 text-xs print:hidden">
         <span className="flex items-center gap-1.5">
@@ -139,6 +239,11 @@ export function FahrzeugberichtFormular() {
 
       <div className="rounded-lg border border-line bg-white p-8 text-ink print:border-none print:p-0 dark:bg-surface-1 print:dark:bg-white print:dark:text-black">
         <div className="mb-8 text-center">
+          {istDemo && (
+            <p className="mb-2 text-lg font-black uppercase tracking-[0.3em] text-caution/40 print:text-caution/60">
+              DEMO
+            </p>
+          )}
           <h1 className="text-xl font-bold print:text-lg">Fahrzeugbericht</h1>
           <p className="mt-1 text-xs text-ink-muted print:text-[10px]">
             Vorlage von CARONEX — erhebt keinen Anspruch auf Vollstaendigkeit
@@ -151,14 +256,14 @@ export function FahrzeugberichtFormular() {
           quelleLabel="CARONEX-Daten"
         >
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            <FeldInput label="Hersteller" />
-            <FeldInput label="Modell" />
-            <FeldInput label="Generation / Baureihe" />
-            <FeldInput label="Baureihenkuerzel (z. B. F30, W205)" />
-            <FeldInput label="Karosserieform" />
-            <FeldInput label="Bauzeitraum" />
-            <FeldInput label="Facelift-Phase (Vorfacelift / LCI / Mopf)" />
-            <FeldInput label="Modelljahr" />
+            <FeldInput label="Hersteller" vorgabe={d?.hersteller} />
+            <FeldInput label="Modell" vorgabe={d?.modell} />
+            <FeldInput label="Generation / Baureihe" vorgabe={d?.generation} />
+            <FeldInput label="Baureihenkuerzel (z. B. F30, W205)" vorgabe={d?.baureihenkuerzel} />
+            <FeldInput label="Karosserieform" vorgabe={d?.karosserie} />
+            <FeldInput label="Bauzeitraum" vorgabe={d?.bauzeitraum} />
+            <FeldInput label="Facelift-Phase (Vorfacelift / LCI / Mopf)" vorgabe={d?.facelift} />
+            <FeldInput label="Modelljahr" vorgabe={d?.modelljahr} />
           </div>
         </DatenquelleAbschnitt>
 
@@ -168,20 +273,20 @@ export function FahrzeugberichtFormular() {
           quelleLabel="CARONEX-Daten"
         >
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            <FeldInput label="Motorbezeichnung (Handelsname)" />
-            <FeldInput label="Motorcode" />
-            <FeldInput label="Motorfamilie (z. B. EA888, N47)" />
-            <FeldInput label="Kraftstoff" />
-            <FeldInput label="Hubraum (ccm)" />
-            <FeldInput label="Zylinder / Anordnung" />
-            <FeldInput label="Aufladung (Turbo, Kompressor, Sauger)" />
-            <FeldInput label="Einspritzsystem" />
-            <FeldInput label="Leistung (kW / PS)" />
-            <FeldInput label="Drehmoment (Nm)" />
-            <FeldInput label="Getriebe" />
-            <FeldInput label="Antriebsart (Front / Heck / Allrad)" />
-            <FeldInput label="Abgasnorm" />
-            <FeldInput label="Ventiltrieb / Steuerzeiten" />
+            <FeldInput label="Motorbezeichnung (Handelsname)" vorgabe={d?.motorHandelsname} />
+            <FeldInput label="Motorcode" vorgabe={d?.motorcode} />
+            <FeldInput label="Motorfamilie (z. B. EA888, N47)" vorgabe={d?.motorfamilie} />
+            <FeldInput label="Kraftstoff" vorgabe={d?.kraftstoff} />
+            <FeldInput label="Hubraum (ccm)" vorgabe={d?.hubraum} />
+            <FeldInput label="Zylinder / Anordnung" vorgabe={d?.zylinder} />
+            <FeldInput label="Aufladung (Turbo, Kompressor, Sauger)" vorgabe={d?.aufladung} />
+            <FeldInput label="Einspritzsystem" vorgabe={d?.einspritzung} />
+            <FeldInput label="Leistung (kW / PS)" vorgabe={d?.leistung} />
+            <FeldInput label="Drehmoment (Nm)" vorgabe={d?.drehmoment} />
+            <FeldInput label="Getriebe" vorgabe={d?.getriebe} />
+            <FeldInput label="Antriebsart (Front / Heck / Allrad)" vorgabe={d?.antrieb} />
+            <FeldInput label="Abgasnorm" vorgabe={d?.abgasnorm} />
+            <FeldInput label="Ventiltrieb / Steuerzeiten" vorgabe={d?.ventiltrieb} />
           </div>
         </DatenquelleAbschnitt>
 
@@ -191,12 +296,12 @@ export function FahrzeugberichtFormular() {
           quelleLabel="CARONEX-Daten"
         >
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            <FeldInput label="0–100 km/h (s)" />
-            <FeldInput label="Hoechstgeschwindigkeit (km/h)" />
-            <FeldInput label="Verbrauch kombiniert (l/100 km oder kWh)" />
-            <FeldInput label="CO2-Emission (g/km)" />
-            <FeldInput label="Tankinhalt (l) / Batteriekapazitaet (kWh)" />
-            <FeldInput label="Leergewicht (kg)" />
+            <FeldInput label="0–100 km/h (s)" vorgabe={d?.beschleunigung} />
+            <FeldInput label="Hoechstgeschwindigkeit (km/h)" vorgabe={d?.hoechstgeschwindigkeit} />
+            <FeldInput label="Verbrauch kombiniert (l/100 km oder kWh)" vorgabe={d?.verbrauch} />
+            <FeldInput label="CO2-Emission (g/km)" vorgabe={d?.co2} />
+            <FeldInput label="Tankinhalt (l) / Batteriekapazitaet (kWh)" vorgabe={d?.tankinhalt} />
+            <FeldInput label="Leergewicht (kg)" vorgabe={d?.leergewicht} />
           </div>
         </DatenquelleAbschnitt>
 
@@ -210,7 +315,27 @@ export function FahrzeugberichtFormular() {
             typische Laufleistung, Abhilfe.
           </p>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((n) => (
+            <div className="rounded border border-ink-subtle/20 p-3 print:border-ink-subtle/30">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                <FeldInput label="Schwachstelle 1 — Bauteil / Baugruppe" vorgabe={d?.schwachstelle1Bauteil} />
+                <FeldInput label="Schweregrad (gering / mittel / hoch / kritisch)" vorgabe={d?.schwachstelle1Schwere} />
+                <FeldInput label="Symptome" breit vorgabe={d?.schwachstelle1Symptome} />
+                <FeldInput label="Typische Laufleistung (km)" vorgabe={d?.schwachstelle1Km} />
+                <FeldInput label="Betroffene Baujahre" vorgabe={d?.schwachstelle1Baujahre} />
+                <FeldInput label="Abhilfe / Reparaturmassnahme" breit vorgabe={d?.schwachstelle1Abhilfe} />
+              </div>
+            </div>
+            <div className="rounded border border-ink-subtle/20 p-3 print:border-ink-subtle/30">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                <FeldInput label="Schwachstelle 2 — Bauteil / Baugruppe" vorgabe={d?.schwachstelle2Bauteil} />
+                <FeldInput label="Schweregrad (gering / mittel / hoch / kritisch)" vorgabe={d?.schwachstelle2Schwere} />
+                <FeldInput label="Symptome" breit vorgabe={d?.schwachstelle2Symptome} />
+                <FeldInput label="Typische Laufleistung (km)" vorgabe={d?.schwachstelle2Km} />
+                <FeldInput label="Betroffene Baujahre" vorgabe={d?.schwachstelle2Baujahre} />
+                <FeldInput label="Abhilfe / Reparaturmassnahme" breit vorgabe={d?.schwachstelle2Abhilfe} />
+              </div>
+            </div>
+            {[3, 4, 5].map((n) => (
               <div
                 key={n}
                 className="rounded border border-ink-subtle/20 p-3 print:border-ink-subtle/30"
@@ -253,29 +378,14 @@ export function FahrzeugberichtFormular() {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  'Motoroel wechseln',
-                  'Oelfilter wechseln',
-                  'Luftfilter wechseln',
-                  'Bremsfluessigkeit wechseln',
-                  'Zahnriemen / Steuerkette pruefen',
-                  'Kuehlmittel wechseln',
-                  'Zuendkerzen wechseln',
-                  'Getriebeoel wechseln',
-                ].map((aufgabe) => (
-                  <tr key={aufgabe} className="border-b border-ink-subtle/20">
-                    <td className="py-2 pr-4">{aufgabe}</td>
+                {wartungsDaten.map((w) => (
+                  <tr key={w.aufgabe} className="border-b border-ink-subtle/20">
+                    <td className="py-2 pr-4">{w.aufgabe}</td>
                     <td className="py-2 pr-4">
-                      <input
-                        type="text"
-                        className="w-full border-b border-ink-subtle/30 bg-transparent pb-1 text-sm outline-none focus:border-accent print:border-none print:text-xs"
-                      />
+                      <TabelleInput vorgabe={w.km} />
                     </td>
                     <td className="py-2">
-                      <input
-                        type="text"
-                        className="w-full border-b border-ink-subtle/30 bg-transparent pb-1 text-sm outline-none focus:border-accent print:border-none print:text-xs"
-                      />
+                      <TabelleInput vorgabe={w.monate} />
                     </td>
                   </tr>
                 ))}
@@ -290,16 +400,16 @@ export function FahrzeugberichtFormular() {
           quelleLabel="Nutzerangaben"
         >
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            <FeldInput label="Kilometerstand" />
-            <FeldInput label="Erstzulassung" />
-            <FeldInput label="Anzahl Vorbesitzer" />
-            <FeldInput label="Letzte HU (Datum)" />
-            <FeldInput label="Scheckheft gepflegt (ja / nein / teilweise)" />
-            <FeldInput label="Unfallhistorie" />
-            <FeldInput label="Bekannte Maengel" mehrzeilig breit />
-            <FeldInput label="Durchgefuehrte Reparaturen" mehrzeilig breit />
-            <FeldInput label="Zustand (Lack, Innenraum, Technik)" mehrzeilig breit />
-            <FeldInput label="Sonstige Angaben" mehrzeilig breit />
+            <FeldInput label="Kilometerstand" vorgabe={d?.km} />
+            <FeldInput label="Erstzulassung" vorgabe={d?.erstzulassung} />
+            <FeldInput label="Anzahl Vorbesitzer" vorgabe={d?.vorbesitzer} />
+            <FeldInput label="Letzte HU (Datum)" vorgabe={d?.letzteHu} />
+            <FeldInput label="Scheckheft gepflegt (ja / nein / teilweise)" vorgabe={d?.scheckheft} />
+            <FeldInput label="Unfallhistorie" vorgabe={d?.unfallhistorie} />
+            <FeldInput label="Bekannte Maengel" mehrzeilig breit vorgabe={d?.maengel} />
+            <FeldInput label="Durchgefuehrte Reparaturen" mehrzeilig breit vorgabe={d?.reparaturen} />
+            <FeldInput label="Zustand (Lack, Innenraum, Technik)" mehrzeilig breit vorgabe={d?.zustandText} />
+            <FeldInput label="Sonstige Angaben" mehrzeilig breit vorgabe={d?.sonstiges} />
           </div>
         </DatenquelleAbschnitt>
 
@@ -309,13 +419,13 @@ export function FahrzeugberichtFormular() {
           quelleLabel="CARONEX-Daten"
         >
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            <FeldInput label="Kfz-Steuer (Euro/Jahr)" />
-            <FeldInput label="Versicherung Haftpflicht (Typklasse)" />
-            <FeldInput label="Versicherung Teilkasko (Typklasse)" />
-            <FeldInput label="Versicherung Vollkasko (Typklasse)" />
-            <FeldInput label="Inspektion, kleine (ca. Euro)" />
-            <FeldInput label="Inspektion, grosse (ca. Euro)" />
-            <FeldInput label="Haeufige Verschleissteile und Kosten" breit />
+            <FeldInput label="Kfz-Steuer (Euro/Jahr)" vorgabe={d?.steuer} />
+            <FeldInput label="Versicherung Haftpflicht (Typklasse)" vorgabe={d?.typklasseHp} />
+            <FeldInput label="Versicherung Teilkasko (Typklasse)" vorgabe={d?.typklasseTk} />
+            <FeldInput label="Versicherung Vollkasko (Typklasse)" vorgabe={d?.typklasseVk} />
+            <FeldInput label="Inspektion, kleine (ca. Euro)" vorgabe={d?.inspektionKlein} />
+            <FeldInput label="Inspektion, grosse (ca. Euro)" vorgabe={d?.inspektionGross} />
+            <FeldInput label="Haeufige Verschleissteile und Kosten" breit vorgabe={d?.verschleiss} />
           </div>
         </DatenquelleAbschnitt>
 
@@ -325,13 +435,13 @@ export function FahrzeugberichtFormular() {
           quelleLabel="Nutzerangaben"
         >
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            <FeldInput label="Preisspanne gebraucht (Euro von – bis)" />
-            <FeldInput label="Typische Laufleistung im Angebot (km)" />
-            <FeldInput label="Marktangebot (viel / mittel / wenig)" />
-            <FeldInput label="Wertentwicklung (stabil / fallend / steigend)" />
+            <FeldInput label="Preisspanne gebraucht (Euro von – bis)" vorgabe={d?.preisSpanne} />
+            <FeldInput label="Typische Laufleistung im Angebot (km)" vorgabe={d?.laufleistungAngebot} />
+            <FeldInput label="Marktangebot (viel / mittel / wenig)" vorgabe={d?.marktangebot} />
+            <FeldInput label="Wertentwicklung (stabil / fallend / steigend)" vorgabe={d?.wertentwicklung} />
           </div>
           <div className="mt-4">
-            <FeldInput label="Einschaetzung / Empfehlung" mehrzeilig breit />
+            <FeldInput label="Einschaetzung / Empfehlung" mehrzeilig breit vorgabe={d?.empfehlung} />
           </div>
         </DatenquelleAbschnitt>
 
@@ -378,7 +488,7 @@ export function FahrzeugberichtFormular() {
             />
           </div>
           <div className="mt-4">
-            <FeldInput label="Fazit / Empfehlung" mehrzeilig breit />
+            <FeldInput label="Fazit / Empfehlung" mehrzeilig breit vorgabe={d?.fazit} />
           </div>
         </DatenquelleAbschnitt>
 
@@ -406,12 +516,18 @@ export function FahrzeugberichtFormular() {
           <textarea
             className="w-full resize-none border-b border-ink-subtle/30 bg-transparent pb-2 text-sm text-ink outline-none focus:border-accent print:pb-1 print:text-xs"
             rows={6}
+            defaultValue={istDemo ? 'BMW 320i F30 LCI mit B48-Motor: zuverlaessige Wahl. Vorgaengermotor N20 hatte Steuerkettenprobleme — beim B48 behoben. Kuehlsystem als einzige nennenswerte Schwachstelle beobachten.' : undefined}
             placeholder="Eigene Notizen zum Fahrzeug..."
           />
         </section>
 
         <div className="mt-8 border-t border-line pt-4 text-center">
           <p className="text-[10px] text-ink-subtle">
+            {istDemo && (
+              <span className="font-bold text-caution">
+                DEMO — Beispieldokument mit fiktiven Daten.{' '}
+              </span>
+            )}
             Vorlage erstellt mit CARONEX — keine Gewaehr fuer Vollstaendigkeit.
             Technische Daten vor dem Kauf immer anhand der Fahrzeugpapiere
             verifizieren. Bereiche sind nach Datenquelle gekennzeichnet:

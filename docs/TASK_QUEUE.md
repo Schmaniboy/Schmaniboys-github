@@ -50,7 +50,7 @@
 - [x] Uebergabeprotokoll (V2.5 #38)
 - [x] Kaeufer-Checkliste (V2.5 #39-42)
 - [x] Fahrzeugbericht (V2.5 #43)
-- [ ] Demo-Dokumente (V2.5 #44)
+- [x] Demo-Dokumente (V2.5 #44)
 
 ## Prioritaet 11 — Admin
 
