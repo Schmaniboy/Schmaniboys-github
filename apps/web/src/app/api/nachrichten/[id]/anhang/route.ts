@@ -6,36 +6,22 @@ import {
   Permission,
   errors,
   pruefeUpload,
-  systemClock,
 } from '@ap/core';
-import { addMessageAttachment, findOwnConversation } from '@ap/db';
+import { addMessageAttachment } from '@ap/db';
 
 import { imageProcessor } from '@/lib/images/processor';
 import { imageStorage } from '@/lib/images/storage';
 import { created, route } from '@/lib/api';
+import { messagingDeps } from '@/lib/deps';
 
 const pfad = z.object({ id: z.string().min(1) });
 
-/**
- * Bild an eine Nachricht anhaengen.
- *
- * "Sichere Anhaenge" heisst hier: **nur Bilder, und nur neu kodierte.**
- * Beliebige Dateien in einem Posteingang waeren ein Verteilweg fuer
- * Schadsoftware -- und ein Posteingang ist genau die Stelle, an der Leute
- * anklicken, was ihnen jemand schickt.
- *
- * Der Weg ist derselbe wie bei Anzeigenbildern (ADR-008): Dateianfang
- * pruefen, dekodieren, als WebP neu schreiben, unter selbst vergebenem
- * Schluessel ablegen. Danach traegt die Datei nichts mehr mit sich -- weder
- * eingebettete Skripte noch den Aufnahmeort.
- */
 export const POST = route(
   async (context) => {
     const { id } = await context.params(pfad);
     const userId = context.userId();
 
-    // Beteiligung am Gespraech, bevor irgendetwas verarbeitet wird.
-    const gespraech = await findOwnConversation(id, userId);
+    const gespraech = await messagingDeps.conversations.findOwnConversation(id, userId);
     if (!gespraech) throw errors.notFound();
 
     const formular = await context.request.formData();
@@ -56,13 +42,8 @@ export const POST = route(
     pruefeUpload({ bytes: rohdaten, vorhandeneBilder: 0 });
 
     const verarbeitet = await imageProcessor.normalise(rohdaten, MAX_KANTE);
-    const jetzt = systemClock.now();
+    const jetzt = messagingDeps.clock.now();
 
-    /*
-     * Zuerst der Eintrag -- der Schluessel enthaelt dessen Kennung. Erst
-     * danach die Datei: Ein Schluessel, den wir selbst vergeben haben, ist
-     * nicht zu erraten und enthaelt keinen fremden Dateinamen.
-     */
     const platzhalter = `nachrichten/${id}/${crypto.randomUUID()}.webp`;
     const eintrag = await addMessageAttachment({
       messageId,
