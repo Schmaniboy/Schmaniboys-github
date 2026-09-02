@@ -6,7 +6,7 @@ import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 export const metadata: Metadata = {
   title: 'Kaufvertrag — Vorlage',
   description:
-    'Vorlage für einen Gebrauchtwagen-Kaufvertrag zwischen Privatpersonen. Ausfüllen, drucken, unterschreiben.',
+    'Vorlage fuer einen Gebrauchtwagen-Kaufvertrag. Online ausfuellen, drucken, unterschreiben.',
 };
 
 export default function KaufvertragPage() {
@@ -17,13 +17,14 @@ export default function KaufvertragPage() {
       </div>
       <div className="accent-rule mb-6 print:hidden" />
       <p className="eyebrow mb-2 print:hidden">Dokumente</p>
-      <h1 className="text-3xl font-semibold tracking-tight text-ink">
+      <h1 className="text-3xl font-semibold tracking-tight text-ink print:hidden">
         Kaufvertrag
       </h1>
-      <p className="mt-3 text-base leading-relaxed text-ink-muted">
-        Vorlage für den privaten Gebrauchtwagenverkauf. Felder ausfüllen, dann
-        über die Druckfunktion des Browsers als PDF speichern oder direkt
-        ausdrucken.
+      <p className="mt-3 text-base leading-relaxed text-ink-muted print:hidden">
+        Vorlage fuer den Gebrauchtwagenverkauf — wahlweise zwischen
+        Privatpersonen oder von Unternehmer an Verbraucher. Felder online
+        ausfuellen, dann ueber die Druckfunktion des Browsers als PDF speichern
+        oder direkt ausdrucken.
       </p>
 
       <div className="mt-8">
@@ -33,10 +34,12 @@ export default function KaufvertragPage() {
       <div className="mt-10 rounded-lg border border-line bg-surface-1 p-6 print:hidden">
         <p className="text-xs leading-relaxed text-ink-subtle">
           <strong>Rechtshinweis:</strong> Diese Vorlage ist eine Arbeitshilfe und
-          ersetzt keine individuelle Rechtsberatung. CARONEX übernimmt keine Gewähr
-          für die rechtliche Vollständigkeit oder Richtigkeit. Insbesondere kann
-          diese Vorlage regionale Besonderheiten nicht berücksichtigen. Im
-          Zweifelsfall ziehen Sie eine Rechtsanwältin oder einen Rechtsanwalt hinzu.
+          ersetzt keine individuelle Rechtsberatung. CARONEX ist nicht
+          Vertragspartei und uebernimmt keine Gewaehr fuer die rechtliche
+          Vollstaendigkeit oder Richtigkeit. Insbesondere kann diese Vorlage
+          regionale Besonderheiten nicht beruecksichtigen. Klauseln, die mit
+          [RECHTLICH PRUEFEN] gekennzeichnet sind, sollten vor Verwendung von
+          einer Rechtsanwaeltin oder einem Rechtsanwalt geprueft werden.
         </p>
       </div>
     </div>

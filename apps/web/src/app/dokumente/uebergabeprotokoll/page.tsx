@@ -32,8 +32,9 @@ export default function UebergabeprotokollPage() {
       <div className="mt-10 rounded-lg border border-line bg-surface-1 p-6 print:hidden">
         <p className="text-xs leading-relaxed text-ink-subtle">
           <strong>Rechtshinweis:</strong> Dieses Protokoll ist eine Arbeitshilfe
-          und ersetzt keine individuelle Rechtsberatung. CARONEX übernimmt keine
-          Gewähr für Vollständigkeit oder Richtigkeit.
+          und ersetzt keine individuelle Rechtsberatung. CARONEX ist nicht
+          Vertragspartei und uebernimmt keine Gewaehr fuer Vollstaendigkeit
+          oder Richtigkeit.
         </p>
       </div>
     </div>

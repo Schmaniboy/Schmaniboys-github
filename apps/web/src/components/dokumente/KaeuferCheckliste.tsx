@@ -1,28 +1,152 @@
 'use client';
 
+import { useState } from 'react';
+
 import { Button } from '@/components/ui/Button';
 
-function Kategorie({
-  titel,
-  punkte,
+type PruefStatus = 'offen' | 'ok' | 'auffaellig' | 'nicht_geprueft';
+
+interface PruefpunktState {
+  status: PruefStatus;
+  notiz: string;
+}
+
+function StatusBadge({
+  status,
+  onClick,
+  label,
 }: {
-  titel: string;
-  punkte: string[];
+  status: PruefStatus;
+  onClick: () => void;
+  label: string;
+}) {
+  const klassen: Record<PruefStatus, string> = {
+    offen: 'border-ink-subtle/30 text-ink-subtle',
+    ok: 'border-positive/50 bg-positive/10 text-positive',
+    auffaellig: 'border-caution/50 bg-caution/10 text-caution',
+    nicht_geprueft: 'border-ink-subtle/30 bg-ink-subtle/5 text-ink-muted',
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors ${klassen[status]}`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function InteraktiverPruefpunkt({
+  text,
+  zustand,
+  onStatusWechsel,
+  onNotizAendern,
+}: {
+  text: string;
+  zustand: PruefpunktState;
+  onStatusWechsel: (status: PruefStatus) => void;
+  onNotizAendern: (notiz: string) => void;
+}) {
+  const naechsterStatus = (): PruefStatus => {
+    switch (zustand.status) {
+      case 'offen': return 'ok';
+      case 'ok': return 'auffaellig';
+      case 'auffaellig': return 'nicht_geprueft';
+      case 'nicht_geprueft': return 'offen';
+    }
+  };
+
+  const statusSymbol: Record<PruefStatus, string> = {
+    offen: '☐',
+    ok: '✓',
+    auffaellig: '⚠',
+    nicht_geprueft: '—',
+  };
+
+  const statusFarbe: Record<PruefStatus, string> = {
+    offen: 'text-ink-subtle',
+    ok: 'text-positive',
+    auffaellig: 'text-caution',
+    nicht_geprueft: 'text-ink-muted',
+  };
+
+  return (
+    <li className="space-y-1">
+      <div className="flex items-start gap-2 text-sm print:text-xs">
+        <button
+          type="button"
+          onClick={() => onStatusWechsel(naechsterStatus())}
+          className={`mt-0.5 shrink-0 font-bold ${statusFarbe[zustand.status]} print:hidden`}
+          title="Status wechseln"
+        >
+          {statusSymbol[zustand.status]}
+        </button>
+        <span className={`hidden print:inline mt-0.5 shrink-0 font-bold ${statusFarbe[zustand.status]}`}>
+          {statusSymbol[zustand.status]}
+        </span>
+        <span className="flex-1">{text}</span>
+        <div className="flex shrink-0 gap-1 print:hidden">
+          <StatusBadge
+            status={zustand.status === 'ok' ? 'ok' : 'offen'}
+            onClick={() => onStatusWechsel('ok')}
+            label="OK"
+          />
+          <StatusBadge
+            status={zustand.status === 'auffaellig' ? 'auffaellig' : 'offen'}
+            onClick={() => onStatusWechsel('auffaellig')}
+            label="Auffaellig"
+          />
+          <StatusBadge
+            status={zustand.status === 'nicht_geprueft' ? 'nicht_geprueft' : 'offen'}
+            onClick={() => onStatusWechsel('nicht_geprueft')}
+            label="Nicht geprueft"
+          />
+        </div>
+      </div>
+      {zustand.status === 'auffaellig' && (
+        <div className="ml-6">
+          <textarea
+            value={zustand.notiz}
+            onChange={(e) => onNotizAendern(e.target.value)}
+            placeholder="Was ist aufgefallen?"
+            className="w-full resize-none border-b border-caution/30 bg-transparent pb-1 text-xs text-caution outline-none focus:border-caution print:pb-0 print:text-[10px]"
+            rows={2}
+          />
+        </div>
+      )}
+    </li>
+  );
+}
+
+function SterneBewertung({
+  label,
+  wert,
+  onAendern,
+}: {
+  label: string;
+  wert: number;
+  onAendern: (wert: number) => void;
 }) {
   return (
-    <section className="mt-6 first:mt-0">
-      <h2 className="mb-3 border-b border-accent/30 pb-2 text-sm font-semibold uppercase tracking-wider text-accent print:text-xs">
-        {titel}
-      </h2>
-      <ul className="space-y-2">
-        {punkte.map((p) => (
-          <li key={p} className="flex items-start gap-2 text-sm print:text-xs">
-            <span className="mt-0.5 shrink-0">☐</span>
-            <span>{p}</span>
-          </li>
+    <div className="flex items-center justify-between gap-4 text-sm print:text-xs">
+      <span className="text-ink">{label}</span>
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((stern) => (
+          <button
+            key={stern}
+            type="button"
+            onClick={() => onAendern(stern === wert ? 0 : stern)}
+            className={`text-lg transition-colors print:pointer-events-none ${
+              stern <= wert ? 'text-accent' : 'text-ink-subtle/30'
+            }`}
+          >
+            {stern <= wert ? '★' : '☆'}
+          </button>
         ))}
-      </ul>
-    </section>
+      </div>
+    </div>
   );
 }
 
@@ -30,90 +154,158 @@ const KATEGORIEN = [
   {
     titel: 'Vor der Besichtigung',
     punkte: [
-      'Fahrzeugdaten online prüfen (Modell, Baujahr, Motorisierung plausibel?)',
+      'Fahrzeugdaten online pruefen (Modell, Baujahr, Motorisierung plausibel?)',
       'Marktpreise vergleichen — ist der Preis realistisch?',
-      'Verkäufer-Identität klären (privat oder gewerblich?)',
+      'Verkaeufer-Identitaet klaeren (privat oder gewerblich?)',
       'Besichtigungstermin bei Tageslicht vereinbaren',
-      'An der Wohnadresse des Verkäufers besichtigen, nicht auf Parkplatz',
+      'An der Wohnadresse des Verkaeufers besichtigen, nicht auf Parkplatz',
     ],
   },
   {
-    titel: 'Papiere',
+    titel: 'Papiere / Unterlagen',
     punkte: [
       'Zulassungsbescheinigung Teil I (Fahrzeugschein) vorhanden',
-      'Zulassungsbescheinigung Teil II (Fahrzeugbrief) vorhanden — Name stimmt mit Verkäufer überein',
-      'VIN im Brief stimmt mit VIN am Fahrzeug überein',
+      'Zulassungsbescheinigung Teil II (Fahrzeugbrief) vorhanden — Name stimmt mit Verkaeufer ueberein',
+      'VIN im Brief stimmt mit VIN am Fahrzeug ueberein',
       'Letzte HU/AU: Datum und Ergebnis',
-      'Serviceheft / Scheckheft vorhanden und lückenlos',
+      'Serviceheft / Scheckheft vorhanden und lueckenlos',
       'Anzahl der Vorbesitzer plausibel',
+      'Rechnungen und Belege vorhanden',
     ],
   },
   {
-    titel: 'Außen',
+    titel: 'Aussen',
     punkte: [
-      'Spaltmaße gleichmäßig (Türen, Motorhaube, Kofferraum)',
+      'Spaltmasse gleichmaessig (Tueren, Motorhaube, Kofferraum)',
       'Lack: Farbunterschiede, Orangenhaut, Nasen — Hinweise auf Nachlackierung',
-      'Rost: Schweller, Radläufe, Türunterkanten, Heckklappenkante',
-      'Scheiben: Steinschläge, Risse, Baujahr der Scheiben passt zum Fahrzeug',
-      'Reifen: Profiltiefe, gleichmäßiger Abrieb, Reifenalter (DOT-Nummer)',
-      'Felgen: Bordsteinschäden, Risse',
-      'Unterboden: Öl- oder Feuchtigkeitsspuren, Durchrostung',
+      'Rost: Schweller, Radlaeufe, Tuerunterkanten, Heckklappenkante',
+      'Scheiben: Steinschlaege, Risse, Baujahr der Scheiben passt zum Fahrzeug',
+      'Beleuchtung: Alle Scheinwerfer, Blinker, Rueckleuchten funktionsfaehig',
+      'Reifen: Profiltiefe, gleichmaessiger Abrieb, Reifenalter (DOT-Nummer)',
+      'Felgen: Bordsteinschaeden, Risse',
+      'Unterboden: Oel- oder Feuchtigkeitsspuren, Durchrostung',
     ],
   },
   {
-    titel: 'Innen',
+    titel: 'Innenraum',
     punkte: [
-      'Sitze: Verschleiß passt zum angegebenen Kilometerstand',
+      'Sitze: Verschleiss passt zum angegebenen Kilometerstand',
       'Lenkrad, Schaltknauf, Pedale: Abnutzung passt zum Kilometerstand',
-      'Geruch: Feuchtigkeit, Schimmel, starker Raumduft (verdeckt Gerüche?)',
+      'Geruch: Feuchtigkeit, Schimmel, starker Raumduft (verdeckt Gerueche?)',
       'Alle elektrischen Fensterheber funktionieren',
-      'Klimaanlage kühlt / Heizung heizt',
-      'Infotainment, Radio, Navigation funktionsfähig',
+      'Klimaanlage kuehlt / Heizung heizt',
+      'Infotainment, Radio, Navigation funktionsfaehig',
+      'Zentralverriegelung funktioniert',
       'Alle Kontrollleuchten gehen nach Motorstart aus',
+      'Warnleuchten im Armaturenbrett pruefen',
     ],
   },
   {
     titel: 'Motor und Technik',
     punkte: [
       'Kaltstart: Motor springt sofort an, kein Nageln, kein Rasseln',
-      'Motorraum: Ölspuren, Kühlmittelverlust, poröse Schläuche',
-      'Ölpeilstab: Füllstand, Farbe (milchig = Kühlmittel im Öl)',
-      'Auspuff: kein blauer oder weißer Rauch bei warmem Motor',
-      'Getriebe: saubere Schaltvorgänge, kein Kratzen, kein Ruckeln',
-      'Bremsen: Scheiben und Beläge sichtbar geprüft, kein Rubbeln',
+      'Motorraum: Oelspuren, Kuehlmittelverlust, poroese Schlaeuche',
+      'Oelpeilstab: Fuellstand, Farbe (milchig = Kuehlmittel im Oel)',
+      'Fluessigkeiten: Brems-, Kuehl-, Servo-, Scheibenwischerfluessigkeit',
+      'Auspuff: kein blauer oder weisser Rauch bei warmem Motor',
+      'Getriebe: saubere Schaltvorgaenge, kein Kratzen, kein Ruckeln',
+      'Bremsen: Scheiben und Belaege sichtbar geprueft, kein Rubbeln',
+      'Motorlauf: gleichmaessig im Leerlauf, keine Vibrationen',
     ],
   },
   {
     titel: 'Probefahrt',
     punkte: [
       'Mindestens 20 Minuten, verschiedene Geschwindigkeiten',
-      'Geradeauslauf prüfen (Lenkrad gerade, Fahrzeug zieht nicht)',
+      'Geradeauslauf pruefen (Lenkrad gerade, Fahrzeug zieht nicht)',
       'Bremsprobe: kein Ziehen, kein Quietschen, ABS greift',
       'Kupplung: Schleifpunkt nicht zu hoch, kein Rupfen',
       'Federung: kein Poltern, kein Schaukeln',
-      'Motor: gleichmäßiger Lauf, keine Leistungslöcher',
-      'Geräusche bei verschiedenen Geschwindigkeiten (Lager, Antriebswelle)',
+      'Motor: gleichmaessiger Lauf, keine Leistungsloecher',
+      'Beschleunigung: spontan und linear',
+      'Lenkung: leichtgaengig, keine Geraeusche',
+      'Geraeusche bei verschiedenen Geschwindigkeiten (Lager, Antriebswelle)',
     ],
   },
   {
     titel: 'Nach der Besichtigung',
     punkte: [
       'Kaufvertrag schriftlich — niemals ohne Vertrag kaufen',
-      'Fahrzeugbrief bei Übergabe mitnehmen',
-      'Übergabeprotokoll ausfüllen',
+      'Fahrzeugbrief bei Uebergabe mitnehmen',
+      'Uebergabeprotokoll ausfuellen',
       'Fahrzeug sofort ummelden (§ 13 FZV)',
-      'Versicherung vor Überführung klären',
+      'Versicherung vor Ueberfuehrung klaeren',
     ],
   },
 ];
 
 export function KaeuferCheckliste() {
+  const initialZustaende: Record<string, PruefpunktState> = {};
+  KATEGORIEN.forEach((k) => {
+    k.punkte.forEach((p) => {
+      initialZustaende[p] = { status: 'offen', notiz: '' };
+    });
+  });
+
+  const [zustaende, setZustaende] = useState(initialZustaende);
+
+  const [bewertungen, setBewertungen] = useState({
+    gesamteindruck: 0,
+    fahrzeugzustand: 0,
+    preisLeistung: 0,
+    probefahrt: 0,
+  });
+
+  const statusAendern = (punkt: string, status: PruefStatus) => {
+    setZustaende((prev) => {
+      const bisherig = prev[punkt] ?? { status: 'offen', notiz: '' };
+      return { ...prev, [punkt]: { status, notiz: bisherig.notiz } };
+    });
+  };
+
+  const notizAendern = (punkt: string, notiz: string) => {
+    setZustaende((prev) => {
+      const bisherig = prev[punkt] ?? { status: 'offen', notiz: '' };
+      return { ...prev, [punkt]: { status: bisherig.status, notiz } };
+    });
+  };
+
+  const alleZuruecksetzen = () => {
+    const zurueckgesetzt: Record<string, PruefpunktState> = {};
+    KATEGORIEN.forEach((k) => {
+      k.punkte.forEach((p) => {
+        zurueckgesetzt[p] = { status: 'offen', notiz: '' };
+      });
+    });
+    setZustaende(zurueckgesetzt);
+    setBewertungen({ gesamteindruck: 0, fahrzeugzustand: 0, preisLeistung: 0, probefahrt: 0 });
+  };
+
+  const anzahlOk = Object.values(zustaende).filter((z) => z.status === 'ok').length;
+  const anzahlAuffaellig = Object.values(zustaende).filter((z) => z.status === 'auffaellig').length;
+  const anzahlGesamt = Object.keys(zustaende).length;
+
   return (
     <>
-      <div className="mb-6 print:hidden">
+      <div className="mb-6 flex flex-wrap items-center gap-3 print:hidden">
         <Button variant="primary" size="md" onClick={() => window.print()}>
           Drucken / Als PDF speichern
         </Button>
+        <Button variant="ghost" size="md" onClick={alleZuruecksetzen}>
+          Zuruecksetzen
+        </Button>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-4 rounded-lg border border-line bg-surface-1 px-4 py-3 text-sm print:hidden">
+        <span className="text-ink-muted">
+          Geprueft: <strong className="text-positive">{anzahlOk}</strong> /{' '}
+          {anzahlGesamt}
+        </span>
+        {anzahlAuffaellig > 0 && (
+          <span className="text-caution">
+            Auffaellig: <strong>{anzahlAuffaellig}</strong>
+          </span>
+        )}
       </div>
 
       <div className="rounded-lg border border-line bg-white p-8 text-ink print:border-none print:p-0 dark:bg-surface-1 print:dark:bg-white print:dark:text-black">
@@ -122,28 +314,86 @@ export function KaeuferCheckliste() {
             Checkliste Gebrauchtwagenkauf
           </h1>
           <p className="mt-1 text-xs text-ink-muted print:text-[10px]">
-            Vorlage von CARONEX — erhebt keinen Anspruch auf Vollständigkeit
+            Vorlage von CARONEX — erhebt keinen Anspruch auf Vollstaendigkeit
           </p>
         </div>
 
         {KATEGORIEN.map((k) => (
-          <Kategorie key={k.titel} titel={k.titel} punkte={k.punkte} />
+          <section key={k.titel} className="mt-6 first:mt-0">
+            <h2 className="mb-3 border-b border-accent/30 pb-2 text-sm font-semibold uppercase tracking-wider text-accent print:text-xs">
+              {k.titel}
+            </h2>
+            <ul className="space-y-2">
+              {k.punkte.map((p) => (
+                <InteraktiverPruefpunkt
+                  key={p}
+                  text={p}
+                  zustand={zustaende[p] ?? { status: 'offen', notiz: '' }}
+                  onStatusWechsel={(s) => statusAendern(p, s)}
+                  onNotizAendern={(n) => notizAendern(p, n)}
+                />
+              ))}
+            </ul>
+          </section>
         ))}
+
+        <section className="mt-8">
+          <h2 className="mb-3 border-b border-accent/30 pb-2 text-sm font-semibold uppercase tracking-wider text-accent print:text-xs">
+            Persoenliche Einschaetzung
+          </h2>
+          <p className="mb-4 text-xs text-ink-muted print:text-[10px]">
+            Persoenliche Einschaetzung des Nutzers — keine professionelle
+            Fahrzeugbewertung.
+          </p>
+          <div className="space-y-3">
+            <SterneBewertung
+              label="Gesamteindruck"
+              wert={bewertungen.gesamteindruck}
+              onAendern={(w) =>
+                setBewertungen((prev) => ({ ...prev, gesamteindruck: w }))
+              }
+            />
+            <SterneBewertung
+              label="Fahrzeugzustand"
+              wert={bewertungen.fahrzeugzustand}
+              onAendern={(w) =>
+                setBewertungen((prev) => ({ ...prev, fahrzeugzustand: w }))
+              }
+            />
+            <SterneBewertung
+              label="Preis-Leistung"
+              wert={bewertungen.preisLeistung}
+              onAendern={(w) =>
+                setBewertungen((prev) => ({ ...prev, preisLeistung: w }))
+              }
+            />
+            <SterneBewertung
+              label="Probefahrt"
+              wert={bewertungen.probefahrt}
+              onAendern={(w) =>
+                setBewertungen((prev) => ({ ...prev, probefahrt: w }))
+              }
+            />
+          </div>
+        </section>
 
         <section className="mt-8">
           <h2 className="mb-3 border-b border-accent/30 pb-2 text-sm font-semibold uppercase tracking-wider text-accent print:text-xs">
             Notizen
           </h2>
-          <div className="space-y-6">
-            <div className="border-b border-ink-subtle/30 pb-8 print:pb-12" />
-            <div className="border-b border-ink-subtle/30 pb-8 print:pb-12" />
-            <div className="border-b border-ink-subtle/30 pb-8 print:pb-12" />
-          </div>
+          <textarea
+            className="w-full resize-none border-b border-ink-subtle/30 bg-transparent pb-2 text-sm text-ink outline-none focus:border-accent print:pb-1 print:text-xs"
+            rows={6}
+            placeholder="Eigene Notizen zur Besichtigung..."
+          />
         </section>
 
         <div className="mt-8 border-t border-line pt-4 text-center">
           <p className="text-[10px] text-ink-subtle">
-            Vorlage erstellt mit CARONEX — keine Gewähr für Vollständigkeit.
+            Vorlage erstellt mit CARONEX — keine Gewaehr fuer Vollstaendigkeit.
+            Diese Checkliste ist eine Orientierungshilfe und ersetzt keine
+            technische Untersuchung, Diagnose oder ein Sachverstaendigengutachten.
+            Die Kaufentscheidung liegt beim Nutzer.
           </p>
         </div>
       </div>

@@ -773,7 +773,7 @@ function SchrittBilder({
 }
 
 function SchrittVerkaufstext({
-  fahrzeug,
+  fahrzeug: _fahrzeug,
   zustand: _zustand,
   ausstattung: _ausstattung,
   textErzeugen,
@@ -895,7 +895,7 @@ function SchrittPreis({
 function SchrittPdf({
   fahrzeug,
   zustand,
-  ausstattung,
+  ausstattung: _ausstattung,
   preis,
   textErzeugen,
   pdfErstellen,

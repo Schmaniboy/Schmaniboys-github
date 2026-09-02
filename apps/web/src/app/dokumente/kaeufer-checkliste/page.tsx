@@ -31,9 +31,11 @@ export default function KaeuferChecklistePage() {
 
       <div className="mt-10 rounded-lg border border-line bg-surface-1 p-6 print:hidden">
         <p className="text-xs leading-relaxed text-ink-subtle">
-          <strong>Hinweis:</strong> Diese Checkliste erhebt keinen Anspruch auf
-          Vollständigkeit. Sie ersetzt keine professionelle Fahrzeugbegutachtung
-          durch eine Prüforganisation.
+          <strong>Hinweis:</strong> Diese Checkliste ist eine Orientierungshilfe
+          und erhebt keinen Anspruch auf Vollstaendigkeit. Sie ersetzt keine
+          technische Untersuchung, keine Diagnose und kein
+          Sachverstaendigengutachten. CARONEX uebernimmt keine Gewaehr. Die
+          Kaufentscheidung liegt beim Nutzer.
         </p>
       </div>
     </div>

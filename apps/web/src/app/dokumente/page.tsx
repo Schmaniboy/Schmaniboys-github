@@ -49,8 +49,8 @@ export default function DokumentePage() {
         Vorlagen und Unterlagen
       </h1>
       <p className="mt-3 text-base leading-relaxed text-ink-muted">
-        Vorlagen für den privaten Fahrzeugverkauf und -kauf. Ausfüllen, ausdrucken,
-        unterschreiben.
+        Vorlagen fuer den privaten Fahrzeugverkauf und -kauf. Direkt online
+        ausfuellen, als PDF speichern oder ausdrucken.
       </p>
 
       <div className="mt-10 space-y-4">
@@ -86,9 +86,10 @@ export default function DokumentePage() {
         <p className="text-xs leading-relaxed text-ink-subtle">
           <strong>Rechtshinweis:</strong> Die hier angebotenen Vorlagen sind
           Arbeitshilfen und ersetzen keine individuelle Rechtsberatung. CARONEX
-          übernimmt keine Gewähr für die rechtliche Vollständigkeit oder Richtigkeit
-          der Dokumente. Im Zweifelsfall ziehen Sie eine Rechtsanwältin oder einen
-          Rechtsanwalt hinzu.
+          ist nicht Vertragspartei und uebernimmt keine Gewaehr fuer die
+          rechtliche Vollstaendigkeit oder Richtigkeit der Dokumente. Im
+          Zweifelsfall ziehen Sie eine Rechtsanwaeltin oder einen Rechtsanwalt
+          hinzu.
         </p>
       </div>
     </div>

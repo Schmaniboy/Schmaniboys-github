@@ -46,10 +46,10 @@
 
 ## Prioritaet 10 — Dokumente / PDFs
 
-- [ ] Kaufvertrag (V2.5 #34-37)
-- [ ] Uebergabeprotokoll (V2.5 #38)
-- [ ] Kaeufer-Checkliste (V2.5 #39-42)
-- [ ] Fahrzeugbericht (V2.5 #43)
+- [x] Kaufvertrag (V2.5 #34-37)
+- [x] Uebergabeprotokoll (V2.5 #38)
+- [x] Kaeufer-Checkliste (V2.5 #39-42)
+- [x] Fahrzeugbericht (V2.5 #43)
 - [ ] Demo-Dokumente (V2.5 #44)
 
 ## Prioritaet 11 — Admin
